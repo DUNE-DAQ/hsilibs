@@ -327,8 +327,11 @@ void
 FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync& timesyncmsg)
 {
   ++m_received_timesync_count;
-  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time
-                 << ", run=" << timesyncmsg.run_number << " (local run number is " << m_run_number << ")";
+  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time << " (..." << std::fixed
+                 << std::setprecision(8)
+                 << (static_cast<double>(timesyncmsg.daq_time % (m_clock_frequency * 1000)) /
+                     static_cast<double>(m_clock_frequency))
+                 << " sec), run=" << timesyncmsg.run_number << " (local runno is " << m_run_number << ")";
   if (m_timestamp_estimator.get() != nullptr) {
     if (timesyncmsg.run_number == m_run_number) {
       m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
