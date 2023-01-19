@@ -36,7 +36,7 @@ HSIEventSender::HSIEventSender(const std::string& name)
 void
 HSIEventSender::init(const nlohmann::json& obj)
 {
-  m_raw_hsi_data_sender = get_iom_sender<TIMING_HSI_FRAME_STRUCT>(appfwk::connection_uid(obj, "output"));
+  m_raw_hsi_data_sender = get_iom_sender<TIMING_HSI_FRAME_STRUCT>(appfwk::connection_inst(obj, "output"));
 }
 
 void
