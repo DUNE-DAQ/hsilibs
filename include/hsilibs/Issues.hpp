@@ -106,6 +106,11 @@ ERS_DECLARE_ISSUE_BASE(hsilibs,
                        " Queue " << queue << " is null! ",
                        ((std::string)name),
                        ((std::string)queue))
+
+ERS_DECLARE_ISSUE(hsilibs,
+                  SpecialCodeInUse,
+                  "Special TimeSync handling (conversion to HSIEvent) is active.",
+                  ERS_EMPTY)
 } // namespace dunedaq
 
 #endif // HSILIBS_INCLUDE_HSILIBS_ISSUES_HPP_

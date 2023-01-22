@@ -96,7 +96,6 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
     ers::fatal(InvalidTriggerRateValue(ERS_HERE, params.trigger_rate));
   }
 
-
   // time between HSI events [us]
   m_event_period.store(1.e6 / m_active_trigger_rate.load());
   TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
@@ -125,7 +124,9 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_received_timesync_count.store(0);
 
   m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(m_timesync_topic);
-  m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+  //m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+  ers::warning(dunedaq::hsilibs::SpecialCodeInUse(ERS_HERE));
+  m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::convert_timesync_to_hsi_event, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   if (start_params.trigger_rate>0) {
@@ -225,7 +226,7 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
   // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
   if (m_timestamp_estimator.get() != nullptr &&
       m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == timinglibs::TimestampEstimatorBase::kInterrupted) {
-    ers::error(timinglibs::FailedToGetTimestampEstimate(ERS_HERE));
+    //ers::error(timinglibs::FailedToGetTimestampEstimate(ERS_HERE));
     return;
   }
 
@@ -328,11 +329,41 @@ void
 FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync& timesyncmsg)
 {
   ++m_received_timesync_count;
-  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time
-                 << ", run=" << timesyncmsg.run_number << " (local run number is " << m_run_number << ")";
+  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time << " (..." << std::fixed
+                 << std::setprecision(8)
+                 << (static_cast<double>(timesyncmsg.daq_time % (m_clock_frequency * 1000)) /
+                     static_cast<double>(m_clock_frequency))
+                 << " sec), run=" << timesyncmsg.run_number << " (local runno is " << m_run_number << ")";
   if (m_timestamp_estimator.get() != nullptr) {
     if (timesyncmsg.run_number == m_run_number) {
       m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
+    } else {
+      TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run "
+                    << m_run_number;
+    }
+  }
+}
+
+void
+FakeHSIEventGenerator::convert_timesync_to_hsi_event(dfmessages::TimeSync& timesyncmsg)
+{
+  ++m_received_timesync_count;
+  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time << " (..." << std::fixed
+                 << std::setprecision(8)
+                 << (static_cast<double>(timesyncmsg.daq_time % (m_clock_frequency * 1000)) /
+                     static_cast<double>(m_clock_frequency))
+                 << " sec), run=" << timesyncmsg.run_number << " (local runno is " << m_run_number << ")";
+  if (timesyncmsg.run_number == m_run_number) {
+    uint32_t signal_map = generate_signal_map(); // NOLINT(build/unsigned)
+    uint32_t trigger_map = signal_map & m_enabled_signals; // NOLINT(build/unsigned)
+  
+    TLOG_DEBUG(3) << "masked gen. map:" << std::bitset<32>(trigger_map);
+  
+    // if at least one active signal, send a HSIEvent
+    if (trigger_map) {
+      dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, trigger_map, timesyncmsg.daq_time,
+                                                        m_generated_counter++, m_run_number);
+      send_hsi_event(event);
     } else {
       TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run "
                     << m_run_number;
