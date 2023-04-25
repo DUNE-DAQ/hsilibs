@@ -47,6 +47,7 @@ resolve_environment_variables(std::string& input_string)
 
 HSIReadout::HSIReadout(const std::string& name)
   : HSIEventSender(name)
+  , m_thread(std::bind(&HSIReadout::do_hsi_work, this, std::placeholders::_1))
   , m_readout_period(1000)
   , m_connections_file("")
   , m_connection_manager(nullptr)
@@ -65,7 +66,7 @@ void
 HSIReadout::init(const nlohmann::json& init_data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-  HSIEventSender::init(init_data);
+  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(appfwk::connection_uid(init_data, "output"));
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
@@ -152,7 +153,7 @@ HSIReadout::do_scrap(const nlohmann::json& /*args*/)
 }
 
 void
-HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
+HSIReadout::do_hsi_work(std::atomic<bool>& running_flag)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_hsievent_work() method";
 
@@ -260,15 +261,16 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
         send_hsi_event(event);
 
         // Send raw HSI data to a DLH 
-        std::array<uint32_t, 6> hsi_struct;
+        std::array<uint32_t, 7> hsi_struct;
         hsi_struct[0] = (0x1 << 6) | 0x1; // DAQHeader, frame version: 1, det id: 1
         hsi_struct[1] = ts_low;
         hsi_struct[2] = ts_high;
         hsi_struct[3] = data;
-        hsi_struct[4] = trigger;
-        hsi_struct[5] = counter;
+        hsi_struct[4] = 0x0;
+        hsi_struct[5] = trigger;
+        hsi_struct[6] = counter;
 
-        TLOG_DEBUG(3) << get_name() << ": Formed TIMING_HSI_FRAME_STRUCT "
+        TLOG_DEBUG(3) << get_name() << ": Formed HSI_FRAME_STRUCT "
               << std::hex 
               << "0x"   << hsi_struct[0]
               << ", 0x" << hsi_struct[1]
@@ -276,9 +278,10 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
               << ", 0x" << hsi_struct[3]
               << ", 0x" << hsi_struct[4]
               << ", 0x" << hsi_struct[5]
+              << ", 0x" << hsi_struct[6]
               << "\n";
 
-        send_raw_hsi_data(hsi_struct);
+        send_raw_hsi_data(hsi_struct, m_raw_hsi_data_sender.get());
       }
     }
     // empty buffer is ok

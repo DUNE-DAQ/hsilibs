@@ -64,6 +64,11 @@ private:
   void do_stop(const nlohmann::json& obj) override;
   void do_scrap(const nlohmann::json& obj) override;
 
+  std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
+  
+  void do_hsi_work(std::atomic<bool>&);
+  dunedaq::utilities::WorkerThread m_thread;
+
   // Configuration
   std::string m_hsi_device_name;
   uint m_readout_period; // NOLINT(build/unsigned)
@@ -72,8 +77,6 @@ private:
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   std::atomic<daqdataformats::run_number_t> m_run_number;
-
-  void do_hsievent_work(std::atomic<bool>&) override;
 
   std::atomic<uint64_t> m_readout_counter;        // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_readout_timestamp; // NOLINT(build/unsigned)

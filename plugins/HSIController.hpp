@@ -60,6 +60,7 @@ private:
   void do_stop(const nlohmann::json& data) override;
   void do_scrap(const nlohmann::json& data) override;
   void do_change_rate(const nlohmann::json& data);
+  void send_configure_hardware_commands(const nlohmann::json& data) override;
 
   timinglibs::timingcmd::TimingHwCmd construct_hsi_hw_cmd(const std::string& cmd_id);
 

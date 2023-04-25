@@ -61,36 +61,15 @@ void
 HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
+  m_hardware_state_recovery_enabled = m_hsi_configuration.hardware_state_recovery_enabled;
   m_timing_device = m_hsi_configuration.device;
-  
+  m_timing_session_name = m_hsi_configuration.timing_session_name;
+
   TimingController::do_configure(data); // configure hw command connection
 
-  do_hsi_reset(data);
-  do_hsi_endpoint_reset(data);
-  do_hsi_configure(data);
+  configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state.load());
 
-  auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    
-    TLOG_DEBUG(3) << "HSI endpoint (" << m_timing_device << ") state: " << m_endpoint_state << ", infos received: " << m_device_infos_received_count;
-
-    if (m_device_ready && m_device_infos_received_count)
-    {
-      break;
-    }
-
-    if (ms_since_conf > m_device_ready_timeout)
-    {
-      throw timinglibs::TimingEndpointNotReady(ERS_HERE,"HSI ("+m_timing_device+")", m_endpoint_state);
-    }
-    
-    TLOG_DEBUG(3) << "Waiting for HSI endpoint to become ready for (ms) " << ms_since_conf.count();
-    std::this_thread::sleep_for(std::chrono::microseconds(250000));
-  }
-  TLOG() << get_name() << " conf; hsi device: " << m_timing_device;
+  TLOG() << get_name() << " conf done for hsi endpoint, device: " << m_timing_device;
 }
 
 void
@@ -137,6 +116,14 @@ HSIController::do_change_rate(const nlohmann::json& data)
          << change_rate_params.trigger_rate;
 
   do_hsi_configure_trigger_rate_override(m_hsi_configuration, change_rate_params.trigger_rate);
+}
+
+void
+HSIController::send_configure_hardware_commands(const nlohmann::json& data)
+{
+  do_hsi_reset(data);
+  do_hsi_endpoint_reset(data);
+  do_hsi_configure(data);
 }
 
 timinglibs::timingcmd::TimingHwCmd

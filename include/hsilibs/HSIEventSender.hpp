@@ -44,7 +44,6 @@ public:
   HSIEventSender(HSIEventSender&&) = delete;                 ///< HSIEventSender is not move-constructible
   HSIEventSender& operator=(HSIEventSender&&) = delete;      ///< HSIEventSender is not move-assignable
 
-  void init(const nlohmann::json& obj) override;
 protected:
   // Commands
   virtual void do_configure(const nlohmann::json& obj) = 0;
@@ -52,21 +51,16 @@ protected:
   virtual void do_stop(const nlohmann::json& obj) = 0;
   virtual void do_scrap(const nlohmann::json& obj) = 0;
 
-  // Threading
-  virtual void do_hsievent_work(std::atomic<bool>&) = 0;
-  dunedaq::utilities::WorkerThread m_thread;
-
   // Configuration
   std::string m_hsievent_send_connection;
   std::chrono::milliseconds m_queue_timeout;
 
-  using raw_sender_ct = iomanager::SenderConcept<TIMING_HSI_FRAME_STRUCT>;
-  std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
+  using raw_sender_ct = iomanager::SenderConcept<HSI_FRAME_STRUCT>;
 
   // push events to HSIEvent output queue
   virtual void send_hsi_event(dfmessages::HSIEvent& event, const std::string& location);
   virtual void send_hsi_event(dfmessages::HSIEvent& event) { send_hsi_event(event, m_hsievent_send_connection); }
-  virtual void send_raw_hsi_data(const std::array<uint32_t, 6>& raw_data);
+  virtual void send_raw_hsi_data(const std::array<uint32_t, 7>& raw_data, raw_sender_ct* sender);
 
   std::atomic<uint64_t> m_sent_counter;           // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_failed_to_send_counter; // NOLINT(build/unsigned)

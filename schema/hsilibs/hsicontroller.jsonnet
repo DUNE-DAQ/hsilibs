@@ -18,9 +18,15 @@ local cs = {
     double_data: s.number("DoubleData", "f8", 
          doc="A double"),
 
+    bool_data: s.boolean("BoolData", doc="A bool"),
+
     conf: s.record("ConfParams",[
         s.field("device", self.str, "",
             doc="String of managed device name"),
+        s.field("hardware_state_recovery_enabled", self.bool_data, true,
+            doc="control flag for hardware state recovery"),
+        s.field("timing_session_name", self.str, "",
+            doc="Name of managed device timing session"),
         s.field("clock_frequency", self.size,
             doc="HSI firmware clock frequency"),
         s.field("trigger_rate", self.double_data,

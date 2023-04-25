@@ -1,5 +1,5 @@
 /**
- * @file TimingHSIFrameProcessor.cpp HSI specific Task based raw processor
+ * @file HSIFrameProcessor.cpp HSI specific Task based raw processor
  * implementation
  *
  * This is part of the DUNE DAQ , copyright 2020.
@@ -7,7 +7,7 @@
  * received with this code.
  */
 #include "hsilibs/Types.hpp"
-#include "TimingHSIFrameProcessor.hpp"
+#include "HSIFrameProcessor.hpp"
 
 #include <atomic>
 #include <functional>
@@ -18,9 +18,9 @@ namespace dunedaq {
 namespace hsilibs {
 
 void 
-TimingHSIFrameProcessor::conf(const nlohmann::json& args)
+HSIFrameProcessor::conf(const nlohmann::json& args)
 {
-  // m_tasklist.push_back( std::bind(&TimingHSIFrameProcessor::frame_error_check, this, std::placeholders::_1) );
+  // m_tasklist.push_back( std::bind(&HSIFrameProcessor::frame_error_check, this, std::placeholders::_1) );
   inherited::conf(args);
 }
 
@@ -28,7 +28,7 @@ TimingHSIFrameProcessor::conf(const nlohmann::json& args)
  * Pipeline Stage 2.: Check for errors
  * */
 void 
-TimingHSIFrameProcessor::frame_error_check(frameptr /*fp*/)
+HSIFrameProcessor::frame_error_check(frameptr /*fp*/)
 {
   // check error fields
 }

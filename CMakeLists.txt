@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(hsilibs VERSION 1.0.1)
+project(hsilibs VERSION 2.1.0)
 
 find_package(daq-cmake REQUIRED)
 
@@ -55,7 +55,7 @@ set(HSILIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(HSIEventSender.cpp TimingHSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIBS_DEPENDENCIES})
+daq_add_library(HSIEventSender.cpp HSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIBS_DEPENDENCIES})
 
 ##############################################################################
 daq_add_plugin(HSIDataLinkHandler duneDAQModule LINK_LIBRARIES hsilibs readoutlibs::readoutlibs ${BOOST_LIBS})

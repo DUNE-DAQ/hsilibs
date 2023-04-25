@@ -25,19 +25,11 @@ namespace hsilibs {
 
 HSIEventSender::HSIEventSender(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
-  , m_thread(std::bind(&HSIEventSender::do_hsievent_work, this, std::placeholders::_1))
   , m_queue_timeout(1)
   , m_sent_counter(0)
   , m_failed_to_send_counter(0)
   , m_last_sent_timestamp(0)
 {}
-
-
-void
-HSIEventSender::init(const nlohmann::json& obj)
-{
-  m_raw_hsi_data_sender = get_iom_sender<TIMING_HSI_FRAME_STRUCT>(appfwk::connection_uid(obj, "output"));
-}
 
 void
 HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& location)
@@ -66,21 +58,22 @@ HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& l
 }
 
 void
-HSIEventSender::send_raw_hsi_data(const std::array<uint32_t, 6>& raw_data)
+HSIEventSender::send_raw_hsi_data(const std::array<uint32_t, 7>& raw_data, raw_sender_ct* sender)
 {
-  TIMING_HSI_FRAME_STRUCT payload;
+  HSI_FRAME_STRUCT payload;
   ::memcpy(&payload,
            &raw_data[0],
-           sizeof(TIMING_HSI_FRAME_STRUCT));
+           sizeof(HSI_FRAME_STRUCT));
   
-  TLOG_DEBUG(3) << get_name() << ": Sending TIMING_HSI_FRAME_STRUCT "
+  TLOG_DEBUG(3) << get_name() << ": Sending HSI_FRAME_STRUCT "
                 << std::hex 
                 << "0x"   << payload.frame.version
                 << ", 0x"   << payload.frame.detector_id
-                
+            
                 << "; 0x"   << payload.frame.timestamp_low
                 << "; 0x"   << payload.frame.timestamp_high
-                << "; 0x"   << payload.frame.data
+                << "; 0x"   << payload.frame.input_low
+                << "; 0x"   << payload.frame.input_high
                 << "; 0x"   << payload.frame.trigger
                 << "; 0x"   << payload.frame.sequence
                 << std::endl;
@@ -88,10 +81,10 @@ HSIEventSender::send_raw_hsi_data(const std::array<uint32_t, 6>& raw_data)
   try
   {
    // TODO deal with this
-   if (!m_raw_hsi_data_sender) {
+   if (!sender) {
       throw(QueueIsNullFatalError(ERS_HERE, get_name(), "HSIEventSender output"));
     }
-    m_raw_hsi_data_sender->send(std::move(payload), m_queue_timeout);
+    sender->send(std::move(payload), m_queue_timeout);
   }
   catch (const dunedaq::iomanager::TimeoutExpired& excpt)
   {
