@@ -17,7 +17,7 @@ local types = {
    
     conf: s.record("Conf", [
 
-      s.field("clock_frequency", self.u64, 50000000,
+      s.field("clock_frequency", self.u64, 62500000,
         doc="Assumed clock frequency in Hz (for current-timestamp estimation)"),
 
       s.field("timestamp_offset", self.i64, 0,
