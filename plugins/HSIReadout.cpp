@@ -66,6 +66,7 @@ void
 HSIReadout::init(const nlohmann::json& init_data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
+  HSIEventSender::init(init_data);
   m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(appfwk::connection_uid(init_data, "output"));
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
@@ -77,7 +78,6 @@ HSIReadout::do_configure(const nlohmann::json& obj)
 
   m_cfg = obj.get<hsireadout::ConfParams>();
 
-  m_hsievent_send_connection = m_cfg.hsievent_connection_name;
   m_connections_file = m_cfg.connections_file;
   m_readout_period = m_cfg.readout_period;
 

@@ -25,16 +25,25 @@ namespace hsilibs {
 
 HSIEventSender::HSIEventSender(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
+  , m_hsievent_send_connection("")
   , m_queue_timeout(1)
+  , m_hsievent_sender(nullptr)
   , m_sent_counter(0)
   , m_failed_to_send_counter(0)
   , m_last_sent_timestamp(0)
 {}
 
 void
-HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& location)
+HSIEventSender::init(const nlohmann::json& init_data)
 {
-  TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent to " << location << ". \n"
+  m_hsievent_send_connection = appfwk::connection_uid(init_data,"hsievents");
+  m_hsievent_sender = get_iom_sender<dfmessages::HSIEvent>(m_hsievent_send_connection);
+}
+
+void
+HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event)
+{
+  TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent to " << m_hsievent_send_connection << ". \n"
                 << event.header << ", " << std::bitset<32>(event.signal_map) << ", " << event.timestamp << ", "
                 << event.sequence_counter << "\n";
 
@@ -42,13 +51,13 @@ HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& l
   while (!was_successfully_sent) {
     try {
         dfmessages::HSIEvent event_copy(event);
-      get_iom_sender<dfmessages::HSIEvent>(location)->send(std::move(event_copy), m_queue_timeout);
+      m_hsievent_sender->send(std::move(event_copy), m_queue_timeout);
       ++m_sent_counter;
       m_last_sent_timestamp.store(event.timestamp);
       was_successfully_sent = true;
     } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
       std::ostringstream oss_warn;
-      oss_warn << "push to output connection \"" << location << "\"";
+      oss_warn << "push to output connection \"" << m_hsievent_send_connection << "\"";
       ers::error(dunedaq::iomanager::TimeoutExpired(ERS_HERE, get_name(), oss_warn.str(), m_queue_timeout.count()));
       ++m_failed_to_send_counter;
     }

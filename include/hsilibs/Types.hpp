@@ -11,7 +11,7 @@
 #ifndef HSILIBS_INCLUDE_HSILIBS_TYPES_HPP_
 #define HSILIBS_INCLUDE_HSILIBS_TYPES_HPP_
 
-#include "detdataformats/hsi/HSIFrame.hpp"
+#include "detdataformats/HSIFrame.hpp"
 #include "daqdataformats/FragmentHeader.hpp"
 #include "daqdataformats/SourceID.hpp"
 #include "serialization/Serialization.hpp"
@@ -37,7 +37,7 @@ class HSI_FRAME_STRUCT
 public:
   using FrameType = HSI_FRAME_STRUCT;
   
-  dunedaq::detdataformats::hsi::HSIFrame frame;
+  dunedaq::detdataformats::HSIFrame frame;
 
   // comparable based on start timestamp
   bool operator<(const FrameType& other) const

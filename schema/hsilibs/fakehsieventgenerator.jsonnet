@@ -36,10 +36,7 @@ local types = {
         doc="Which signals or bit of the 32 bit signal bit map are enabled, i.e. could produce an emulated signal"),
 
       s.field("signal_emulation_mode", self.u32, 0,
-        doc="Signal bit map emulation mode. 0: enabled signals always on; 1: enabled signals are emulated (independently) on according to a Poisson with mean mean_signal_multiplicity; signal map generated with uniform distr. enabled signals only"),
-              
-      s.field("hsievent_connection_name", self.connection_name, 
-        doc="Connection name to be used to send hsievent to")
+        doc="Signal bit map emulation mode. 0: enabled signals always on; 1: enabled signals are emulated (independently) on according to a Poisson with mean mean_signal_multiplicity; signal map generated with uniform distr. enabled signals only")
 
     ], doc="FakeHSIEventoGenerator configuration parameters"),
 

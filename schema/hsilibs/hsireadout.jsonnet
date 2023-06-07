@@ -24,9 +24,7 @@ local types = {
         s.field("hsi_device_name", self.str, "",
                 doc="Name of timing master device to be monitored"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
-                doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
-        s.field("hsievent_connection_name", self.connection_name, 
-                doc="Connection name to be used to send hsievent to")
+                doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug.")
     ], doc="HSIReadout configuration"),
 
 };

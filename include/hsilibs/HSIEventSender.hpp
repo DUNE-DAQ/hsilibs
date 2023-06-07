@@ -44,6 +44,7 @@ public:
   HSIEventSender(HSIEventSender&&) = delete;                 ///< HSIEventSender is not move-constructible
   HSIEventSender& operator=(HSIEventSender&&) = delete;      ///< HSIEventSender is not move-assignable
 
+  void init(const nlohmann::json& init_data) override;
 protected:
   // Commands
   virtual void do_configure(const nlohmann::json& obj) = 0;
@@ -57,9 +58,11 @@ protected:
 
   using raw_sender_ct = iomanager::SenderConcept<HSI_FRAME_STRUCT>;
 
+  using hsievent_sender_ct = iomanager::SenderConcept<dfmessages::HSIEvent>;
+  std::shared_ptr<hsievent_sender_ct> m_hsievent_sender;
+
   // push events to HSIEvent output queue
-  virtual void send_hsi_event(dfmessages::HSIEvent& event, const std::string& location);
-  virtual void send_hsi_event(dfmessages::HSIEvent& event) { send_hsi_event(event, m_hsievent_send_connection); }
+  virtual void send_hsi_event(dfmessages::HSIEvent& event);
   virtual void send_raw_hsi_data(const std::array<uint32_t, 7>& raw_data, raw_sender_ct* sender);
 
   std::atomic<uint64_t> m_sent_counter;           // NOLINT(build/unsigned)
