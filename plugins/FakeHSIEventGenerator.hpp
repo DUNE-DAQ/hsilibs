@@ -9,7 +9,7 @@
 
 #include "hsilibs/HSIEventSender.hpp"
 
-#include "timinglibs/TimestampEstimator.hpp"
+#include "utilities/TimestampEstimator.hpp"
 #include "hsilibs/fakehsieventgenerator/Nljs.hpp"
 #include "hsilibs/fakehsieventgenerator/Structs.hpp"
 #include "hsilibs/fakehsieventgeneratorinfo/InfoNljs.hpp"
@@ -17,7 +17,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
-#include "dfmessages/TimeSync.hpp"
+#include "utilities/TimeSync.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
@@ -67,15 +67,13 @@ private:
   void do_hsi_work(std::atomic<bool>&);
   dunedaq::utilities::WorkerThread m_thread;
 
-  void dispatch_timesync(dfmessages::TimeSync& message);
-
-  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_timesync_receiver;
+  std::shared_ptr<iomanager::ReceiverConcept<utilities::TimeSync>> m_timesync_receiver;
 
   // Configuration
   std::atomic<daqdataformats::run_number_t> m_run_number;
 
   // Helper class for estimating DAQ time
-  std::unique_ptr<timinglibs::TimestampEstimator> m_timestamp_estimator;
+  std::unique_ptr<utilities::TimestampEstimator> m_timestamp_estimator;
 
   // Random Generatior
   std::default_random_engine m_random_generator;
@@ -97,8 +95,6 @@ private:
   uint32_t m_enabled_signals;                       // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_generated_counter;        // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_generated_timestamp; // NOLINT(build/unsigned)
-
-  std::atomic<uint64_t> m_received_timesync_count; // NOLINT(build/unsigned)
 };
 } // namespace hsilibs
 } // namespace dunedaq

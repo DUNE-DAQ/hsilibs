@@ -21,6 +21,7 @@ find_dependency(iomanager)
 find_dependency(dfmessages)
 find_dependency(daqdataformats)
 find_dependency(detdataformats)
+find_dependency(utilities)
 find_dependency(Boost COMPONENTS program_options iostreams)
 
 # Figure out whether or not this dependency is an installed package or

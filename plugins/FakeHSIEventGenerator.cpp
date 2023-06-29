@@ -11,7 +11,7 @@
 
 #include "hsilibs/fakehsieventgenerator/Nljs.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
+#include "utilities/Issues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
@@ -119,14 +119,15 @@ void
 FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
-  m_timestamp_estimator.reset(new timinglibs::TimestampEstimator(m_clock_frequency));
-
-  m_received_timesync_count.store(0);
-
-  m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(".*");
-  m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
-
   auto start_params = obj.get<rcif::cmd::StartParams>();
+
+  m_timestamp_estimator.reset(new utilities::TimestampEstimator(start_params.run, m_clock_frequency));
+
+  m_timesync_receiver = get_iom_receiver<utilities::TimeSync>(".*");
+  m_timesync_receiver->add_callback(std::bind(&utilities::TimestampEstimator::timesync_callback,
+                                    reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
+                                    std::placeholders::_1));
+
   if (start_params.trigger_rate>0) {
     m_active_trigger_rate.store(start_params.trigger_rate);
 
@@ -170,7 +171,7 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
   m_thread.stop_working_thread();
 
   m_timesync_receiver->remove_callback();
-  TLOG() << get_name() << ": received " << m_received_timesync_count.load() << " TimeSync messages.";
+  TLOG() << get_name() << ": received " << m_timestamp_estimator->get_received_timesync_count() << " TimeSync messages.";
 
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
 
@@ -223,8 +224,8 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
   // Wait for there to be a valid timestsamp estimate before we start
   // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
   if (m_timestamp_estimator.get() != nullptr &&
-      m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == timinglibs::TimestampEstimatorBase::kInterrupted) {
-    ers::error(timinglibs::FailedToGetTimestampEstimate(ERS_HERE));
+      m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == utilities::TimestampEstimatorBase::kInterrupted) {
+    ers::error(utilities::FailedToGetTimestampEstimate(ERS_HERE));
     return;
   }
 
@@ -323,25 +324,6 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
            << " HSIEvent messages and successfully sent " << m_sent_counter << " copies. ";
   ers::info(dunedaq::hsilibs::ProgressUpdate(ERS_HERE, get_name(), oss_summ.str()));
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_work() method";
-}
-
-void
-FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync& timesyncmsg)
-{
-  ++m_received_timesync_count;
-  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time << " (..." << std::fixed
-                 << std::setprecision(8)
-                 << (static_cast<double>(timesyncmsg.daq_time % (m_clock_frequency * 1000)) /
-                     static_cast<double>(m_clock_frequency))
-                 << " sec), run=" << timesyncmsg.run_number << " (local runno is " << m_run_number << ")";
-  if (m_timestamp_estimator.get() != nullptr) {
-    if (timesyncmsg.run_number == m_run_number) {
-      m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
-    } else {
-      TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run "
-                    << m_run_number;
-    }
-  }
 }
 
 } // namespace hsilibs

@@ -22,6 +22,7 @@ find_package(pugixml REQUIRED)
 find_package(iomanager REQUIRED)
 find_package(daqdataformats REQUIRED)
 find_package(detdataformats REQUIRED)
+find_package(utilities REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework iostreams REQUIRED)
 
 set(BOOST_LIBS Boost::iostreams ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_LIBRARIES})
@@ -59,7 +60,7 @@ daq_add_library(HSIEventSender.cpp HSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIB
 
 ##############################################################################
 daq_add_plugin(HSIDataLinkHandler duneDAQModule LINK_LIBRARIES hsilibs readoutlibs::readoutlibs ${BOOST_LIBS})
-daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES hsilibs timinglibs::timinglibs timing::timing)
+daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES hsilibs timinglibs::timinglibs timing::timing utilities::utilities)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs::timinglibs uhal::uhal pugixml::pugixml hsilibs)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs timing::timing timinglibs::timinglibs)
 
