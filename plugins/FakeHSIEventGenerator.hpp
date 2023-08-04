@@ -17,7 +17,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
-#include "utilities/TimeSync.hpp"
+#include "dfmessages/TimeSync.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
@@ -67,7 +67,7 @@ private:
   void do_hsi_work(std::atomic<bool>&);
   dunedaq::utilities::WorkerThread m_thread;
 
-  std::shared_ptr<iomanager::ReceiverConcept<utilities::TimeSync>> m_timesync_receiver;
+  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_timesync_receiver;
 
   // Configuration
   std::atomic<daqdataformats::run_number_t> m_run_number;

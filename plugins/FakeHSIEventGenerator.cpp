@@ -123,8 +123,8 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 
   m_timestamp_estimator.reset(new utilities::TimestampEstimator(start_params.run, m_clock_frequency));
 
-  m_timesync_receiver = get_iom_receiver<utilities::TimeSync>(".*");
-  m_timesync_receiver->add_callback(std::bind(&utilities::TimestampEstimator::timesync_callback,
+  m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(".*");
+  m_timesync_receiver->add_callback(std::bind(&utilities::TimestampEstimator::timesync_callback<dfmessages::TimeSync>,
                                     reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
                                     std::placeholders::_1));
 
