@@ -11,7 +11,6 @@
 
 #include "hsilibs/hsireadout/Nljs.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
 #include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
