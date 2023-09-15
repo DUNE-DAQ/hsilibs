@@ -17,9 +17,8 @@
 #include "hsilibs/hsicontrollerinfo/InfoNljs.hpp"
 #include "hsilibs/hsicontrollerinfo/InfoStructs.hpp"
 
-#include "timinglibs/timingcmd/Nljs.hpp"
-#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingController.hpp"
+#include "timinglibs/TimingHardwareInterface.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -37,7 +36,7 @@ namespace hsilibs {
  * @brief HSIController is a DAQModule implementation that
  * provides that provides a control interface for a HSI endpoint.
  */
-class HSIController : public dunedaq::timinglibs::TimingController
+class HSIController : public dunedaq::timinglibs::TimingController, dunedaq::timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -54,6 +53,9 @@ public:
 private:
   hsicontroller::ConfParams m_hsi_configuration;
 
+  std::unique_ptr<uhal::HwInterface> m_hsi_device;
+  bool m_control_hardware_io;
+
   // Commands
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
@@ -61,8 +63,6 @@ private:
   void do_scrap(const nlohmann::json& data) override;
   void do_change_rate(const nlohmann::json& data);
   void send_configure_hardware_commands(const nlohmann::json& data) override;
-
-  timinglibs::timingcmd::TimingHwCmd construct_hsi_hw_cmd(const std::string& cmd_id);
 
   // timinglibs hsi commands
   void do_hsi_io_reset(const nlohmann::json& data);
