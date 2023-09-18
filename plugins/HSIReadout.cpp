@@ -32,24 +32,10 @@ namespace dunedaq {
   ERS_DECLARE_ISSUE(hsilibs, InvalidNumberReadoutHSIWords, " Invalid number of hsi words readout from buffer: 0x" << std::hex << n_words, ((uint16_t)n_words)) // NOLINT(build/unsigned)
 namespace hsilibs {
 
-inline void
-resolve_environment_variables(std::string& input_string)
-{
-  static std::regex env_var_pattern("\\$\\{([^}]+)\\}");
-  std::smatch match;
-  while (std::regex_search(input_string, match, env_var_pattern)) {
-    const char* s = getenv(match[1].str().c_str());
-    const std::string env_var(s == nullptr ? "" : s);
-    input_string.replace(match[0].first, match[0].second, env_var);
-  }
-}
-
 HSIReadout::HSIReadout(const std::string& name)
   : HSIEventSender(name)
   , m_thread(std::bind(&HSIReadout::do_hsi_work, this, std::placeholders::_1))
   , m_readout_period(1000)
-  , m_connections_file("")
-  , m_connection_manager(nullptr)
   , m_hsi_device(nullptr)
   , m_readout_counter(0)
   , m_last_readout_timestamp(0)
@@ -62,51 +48,24 @@ HSIReadout::HSIReadout(const std::string& name)
 }
 
 void
-HSIReadout::init(const nlohmann::json& init_data)
+HSIReadout::init(const nlohmann::json& data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-  HSIEventSender::init(init_data);
-  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(appfwk::connection_uid(init_data, "output"));
+  HSIEventSender::init(data);
+  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(appfwk::connection_uid(data, "output"));
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
 void
-HSIReadout::do_configure(const nlohmann::json& obj)
+HSIReadout::do_configure(const nlohmann::json& data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
-  m_cfg = obj.get<hsireadout::ConfParams>();
-
-  m_connections_file = m_cfg.connections_file;
+  m_cfg = data.get<hsireadout::ConfParams>();
   m_readout_period = m_cfg.readout_period;
 
-  TLOG_DEBUG(0) << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
-  resolve_environment_variables(m_connections_file);
-  TLOG_DEBUG(0) << get_name() << "conf: con. file after env var expansion:  " << m_connections_file;
+  configure_uhal(data); // configure hw ipbus connection
 
-  if (!m_cfg.uhal_log_level.compare("debug")) {
-    uhal::setLogLevelTo(uhal::Debug());
-  } else if (!m_cfg.uhal_log_level.compare("info")) {
-    uhal::setLogLevelTo(uhal::Info());
-  } else if (!m_cfg.uhal_log_level.compare("notice")) {
-    uhal::setLogLevelTo(uhal::Notice());
-  } else if (!m_cfg.uhal_log_level.compare("warning")) {
-    uhal::setLogLevelTo(uhal::Warning());
-  } else if (!m_cfg.uhal_log_level.compare("error")) {
-    uhal::setLogLevelTo(uhal::Error());
-  } else if (!m_cfg.uhal_log_level.compare("fatal")) {
-    uhal::setLogLevelTo(uhal::Fatal());
-  } else {
-    throw InvalidUHALLogLevel(ERS_HERE, m_cfg.uhal_log_level);
-  }
-
-  try {
-    m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
-  } catch (const uhal::exception::FileNotFound& excpt) {
-    std::stringstream message;
-    message << m_connections_file << " not found. Has TIMING_SHARE been set?";
-    throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
-  }
   if (m_cfg.hsi_device_name.empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name for HSIReadout should not be empty");
@@ -125,10 +84,10 @@ HSIReadout::do_configure(const nlohmann::json& obj)
 }
 
 void
-HSIReadout::do_start(const nlohmann::json& args)
+HSIReadout::do_start(const nlohmann::json& data)
 {
   TLOG() << get_name() << ": Entering do_start() method";
-  auto start_params = args.get<rcif::cmd::StartParams>();
+  auto start_params = data.get<rcif::cmd::StartParams>();
   m_run_number.store(start_params.run);
   m_thread.start_working_thread("read-hsi-events");
   TLOG() << get_name() << " successfully started";
@@ -136,7 +95,7 @@ HSIReadout::do_start(const nlohmann::json& args)
 }
 
 void
-HSIReadout::do_stop(const nlohmann::json& /*args*/)
+HSIReadout::do_stop(const nlohmann::json& /*data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
@@ -145,9 +104,10 @@ HSIReadout::do_stop(const nlohmann::json& /*args*/)
 }
 
 void
-HSIReadout::do_scrap(const nlohmann::json& /*args*/)
+HSIReadout::do_scrap(const nlohmann::json& data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
+  scrap_uhal(data);
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_scrap() method";
 }
 

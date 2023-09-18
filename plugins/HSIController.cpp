@@ -125,11 +125,12 @@ void
 HSIController::do_scrap(const nlohmann::json& data)
 {
   m_thread.stop_working_thread();
-  m_connection_manager.reset(nullptr);
-  m_connections_file="";
+  scrap_uhal(data);
+
   m_timing_device="";
   m_control_hardware_io=false;
   m_endpoint_state = 0x0;
+
   TimingController::do_scrap(data);
 }
 

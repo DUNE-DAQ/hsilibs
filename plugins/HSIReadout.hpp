@@ -13,6 +13,8 @@
 #include "hsilibs/hsireadoutinfo/InfoNljs.hpp"
 #include "hsilibs/hsireadoutinfo/InfoStructs.hpp"
 
+#include "timinglibs/TimingHardwareInterface.hpp"
+
 #include "appfwk/DAQModule.hpp"
 #include "dfmessages/HSIEvent.hpp"
 #include "timing/HSINode.hpp"
@@ -39,7 +41,7 @@ namespace hsilibs {
  * @brief HSIReadout generates fake HSIEvent messages
  * and pushes them to the configured output queue.
  */
-class HSIReadout : public hsilibs::HSIEventSender
+class HSIReadout : public hsilibs::HSIEventSender, dunedaq::timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -53,16 +55,16 @@ public:
   HSIReadout(HSIReadout&&) = delete;                 ///< HSIReadout is not move-constructible
   HSIReadout& operator=(HSIReadout&&) = delete;      ///< HSIReadout is not move-assignable
 
-  void init(const nlohmann::json& obj) override;
+  void init(const nlohmann::json& data) override;
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
   hsireadout::ConfParams m_cfg;
-  void do_configure(const nlohmann::json& obj) override;
-  void do_start(const nlohmann::json& obj) override;
-  void do_stop(const nlohmann::json& obj) override;
-  void do_scrap(const nlohmann::json& obj) override;
+  void do_configure(const nlohmann::json& data) override;
+  void do_start(const nlohmann::json& data) override;
+  void do_stop(const nlohmann::json& data) override;
+  void do_scrap(const nlohmann::json& data) override;
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
   
@@ -73,8 +75,6 @@ private:
   std::string m_hsi_device_name;
   uint m_readout_period; // NOLINT(build/unsigned)
 
-  std::string m_connections_file;
-  std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   std::atomic<daqdataformats::run_number_t> m_run_number;
 
