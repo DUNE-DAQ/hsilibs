@@ -33,13 +33,15 @@
 #include <vector>
 
 namespace dunedaq {
+
 namespace hsilibs {
 
 HSIController::HSIController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 9) // 2nd arg: how many hw commands can this module send?
   , m_endpoint_state(0)
-  , m_clock_frequency(62.5e6)
   , m_control_hardware_io(false)
+  , m_clock_frequency(62.5e6)
+  , m_thread(std::bind(&HSIController::gather_monitor_data, this, std::placeholders::_1))
 {
   register_command("conf", &HSIController::do_configure);
   register_command("start", &HSIController::do_start);
@@ -83,6 +85,8 @@ HSIController::do_configure(const nlohmann::json& data)
     throw timinglibs::UHALDeviceNameIssue(ERS_HERE, message.str(), exception);
   }
 
+  m_thread.start_working_thread("gather-hsi-op-mon-info");
+
   configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state.load());
 
   TLOG() << get_name() << " conf done for hsi endpoint, device: " << m_timing_device;
@@ -120,6 +124,11 @@ HSIController::do_stop(const nlohmann::json& data)
 void
 HSIController::do_scrap(const nlohmann::json& data)
 {
+  m_thread.stop_working_thread();
+  m_connection_manager.reset(nullptr);
+  m_connections_file="";
+  m_timing_device="";
+  m_control_hardware_io=false;
   m_endpoint_state = 0x0;
   TimingController::do_scrap(data);
 }
@@ -324,6 +333,48 @@ HSIController::process_device_info(nlohmann::json info)
     {
       m_device_ready = false;
       TLOG_DEBUG(2) << "HSI endpoint no longer ready";
+    }
+  }
+}
+
+void
+HSIController::gather_monitor_data(std::atomic<bool>& running_flag)
+{
+  while (running_flag.load()) {
+
+    opmonlib::InfoCollector info_collector;
+
+    // collect the data from the hardware
+    try
+    {
+      auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+      design->get_info(info_collector, 1);
+    } catch (const std::exception& excpt) {
+      ers::warning(timinglibs::FailedToCollectOpMonInfo(ERS_HERE, m_timing_device, excpt));
+    }
+
+    nlohmann::json info = info_collector.get_collected_infos();
+    process_device_info(info);
+
+    auto prev_gather_time = std::chrono::steady_clock::now();
+    auto next_gather_time = prev_gather_time + std::chrono::microseconds(100000);
+
+    // check running_flag periodically
+    auto slice_period = std::chrono::microseconds(10000);
+    auto next_slice_gather_time = prev_gather_time + slice_period;
+
+    bool break_flag = false;
+    while (next_gather_time > next_slice_gather_time + slice_period) {
+      if (!running_flag.load()) {
+        TLOG_DEBUG(0) << "while waiting to gather data, negative run flag detected.";
+        break_flag = true;
+        break;
+      }
+      std::this_thread::sleep_until(next_slice_gather_time);
+      next_slice_gather_time = next_slice_gather_time + slice_period;
+    }
+    if (break_flag == false) {
+      std::this_thread::sleep_until(next_gather_time);
     }
   }
 }

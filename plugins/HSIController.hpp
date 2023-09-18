@@ -56,6 +56,9 @@ private:
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   bool m_control_hardware_io;
 
+  dunedaq::utilities::WorkerThread m_thread;
+  void gather_monitor_data(std::atomic<bool>&);
+
   // Commands
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
