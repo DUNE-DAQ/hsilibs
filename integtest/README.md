@@ -6,7 +6,7 @@
 Here is a sample command for invoking a test (feel free to keep or drop the options in brackets, as you prefer):
 
 ```
-pytest -s disabled_output_test.py [--nanorc-option partition-number 2] [--nanorc-option timeout 300]
+pytest -s iceberg_real_hsi_test.py [--nanorc-option partition-number 2] [--nanorc-option timeout 300]
 ```
 For reference, here are the ideas behind the tests that currently exist in this repository:
 * `iceberg_real_hsi_test.py` - tests the generation of pulser triggers by the real TLU/HSI electronics at the ICEBERG teststand
