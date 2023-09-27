@@ -141,6 +141,21 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   }
   m_run_number.store(start_params.run);
 
+  // 27-Sep-2023, KAB: wait until we are really ready to send messages (within reason)
+  TLOG() << "KAB000 " << __LINE__;
+  if (! ready_to_send(std::chrono::milliseconds(5))) {
+    TLOG() << "KAB001 " << __LINE__;
+    if (! ready_to_send(std::chrono::milliseconds(1000))) {
+      TLOG() << "KAB002 " << __LINE__;
+      if (! ready_to_send(std::chrono::milliseconds(1000))) {
+        TLOG() << "KAB003 " << __LINE__;
+        if (! ready_to_send(std::chrono::milliseconds(1000))) {
+          TLOG() << "KAB004 " << __LINE__;
+        }
+      }
+    }
+  }
+
   m_thread.start_working_thread("fake-tsd-gen");
   TLOG() << get_name() << " successfully started";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_start() method";

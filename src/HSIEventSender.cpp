@@ -40,6 +40,13 @@ HSIEventSender::init(const nlohmann::json& init_data)
   m_hsievent_sender = get_iom_sender<dfmessages::HSIEvent>(m_hsievent_send_connection);
 }
 
+bool
+HSIEventSender::ready_to_send(std::chrono::milliseconds timeout)
+{
+  if (m_hsievent_sender == nullptr) {return false;}
+  return m_hsievent_sender->is_ready_for_sending(timeout);
+}
+
 void
 HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event)
 {
@@ -50,7 +57,7 @@ HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event)
   bool was_successfully_sent = false;
   while (!was_successfully_sent) {
     try {
-        dfmessages::HSIEvent event_copy(event);
+      dfmessages::HSIEvent event_copy(event);
       m_hsievent_sender->send(std::move(event_copy), m_queue_timeout);
       ++m_sent_counter;
       m_last_sent_timestamp.store(event.timestamp);
