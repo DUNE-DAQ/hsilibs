@@ -141,19 +141,15 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   }
   m_run_number.store(start_params.run);
 
-  // 27-Sep-2023, KAB: wait until we are really ready to send messages (within reason)
-  TLOG() << "KAB000 " << __LINE__;
-  if (! ready_to_send(std::chrono::milliseconds(5))) {
-    TLOG() << "KAB001 " << __LINE__;
-    if (! ready_to_send(std::chrono::milliseconds(1000))) {
-      TLOG() << "KAB002 " << __LINE__;
-      if (! ready_to_send(std::chrono::milliseconds(1000))) {
-        TLOG() << "KAB003 " << __LINE__;
-        if (! ready_to_send(std::chrono::milliseconds(1000))) {
-          TLOG() << "KAB004 " << __LINE__;
-        }
-      }
+  // 27-Sep-2023, KAB: wait until we are really ready to send messages
+  if (! ready_to_send(std::chrono::milliseconds(1))) {
+    do {
+      TLOG() << get_name() << " Waiting for the Sender for the "
+	     <<  m_hsievent_send_connection << " connection to be ready to send messages.";
     }
+    while (! ready_to_send(std::chrono::milliseconds(1000)));
+    TLOG() << get_name() << " The Sender for the "
+	   <<  m_hsievent_send_connection << " connection is now ready.";
   }
 
   m_thread.start_working_thread("fake-tsd-gen");
