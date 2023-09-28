@@ -36,6 +36,13 @@ ERS_DECLARE_ISSUE_BASE(hsilibs,
                        ((std::string)name),
                        ((std::string)queueType))
 
+ERS_DECLARE_ISSUE_BASE(hsilibs,
+                       SenderReadyTimeout,
+                       appfwk::GeneralDAQModuleIssue,
+                       "Timeout waiting for the Sender for connection " << conn << " to be ready.",
+                       ((std::string)name),
+                       ((std::string)conn))
+
 ERS_DECLARE_ISSUE(hsilibs,                         ///< Namespace
                   UHALIssue,                          ///< Issue class name
                   " UHAL related issue: " << message, ///< Message

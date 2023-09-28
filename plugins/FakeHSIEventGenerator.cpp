@@ -141,15 +141,30 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   }
   m_run_number.store(start_params.run);
 
-  // 27-Sep-2023, KAB: wait until we are really ready to send messages
+  // 28-Sep-2023, KAB: added code to wait for the Sender connection to be ready.
+  // This code needs to come *before* the Sender connection is first used, and 
+  // before any threads that use the Sender connection are start, and it needs
+  // to come *after* any Receiver connections are created/started so that it
+  // doesn't block other modules that are trying to connect to this one.
+  // We retry for 10 seconds.  That seems like it should be plenty long enough
+  // for the connection to be established but short enough so that it doesn't
+  // annoy users if/when the connection readiness times out.
   if (! ready_to_send(std::chrono::milliseconds(1))) {
-    do {
-      TLOG() << get_name() << " Waiting for the Sender for the "
-	     <<  m_hsievent_send_connection << " connection to be ready to send messages.";
+    bool ready = false;
+    for (int loop_counter = 0; loop_counter < 10; ++loop_counter) {
+      TLOG() << get_name() << " Waiting for the Sender for the " <<  m_hsievent_send_connection
+             << " connection to be ready to send messages, loop_count=" << (loop_counter+1);
+      if (ready_to_send(std::chrono::milliseconds(1000))) {
+        ready = true;
+        break;
+      }
     }
-    while (! ready_to_send(std::chrono::milliseconds(1000)));
-    TLOG() << get_name() << " The Sender for the "
-	   <<  m_hsievent_send_connection << " connection is now ready.";
+    if (ready) {
+      TLOG() << get_name() << " The Sender for the " <<  m_hsievent_send_connection
+             << " connection is now ready.";
+    } else {
+      throw(SenderReadyTimeout(ERS_HERE, get_name(), m_hsievent_send_connection));
+    }
   }
 
   m_thread.start_working_thread("fake-tsd-gen");
