@@ -20,13 +20,20 @@ local cs = {
 
     bool_data: s.boolean("BoolData", doc="A bool"),
 
+    uhal_log_level : s.string("UHALLogLevel", pattern=moo.re.ident_only,
+                    doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
+
     conf: s.record("ConfParams",[
         s.field("device", self.str, "",
             doc="String of managed device name"),
+         s.field("connections_file", self.str, "",
+                doc="device connections file"),
+        s.field("uhal_log_level", self.uhal_log_level, "notice",
+                doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
         s.field("hardware_state_recovery_enabled", self.bool_data, true,
             doc="control flag for hardware state recovery"),
-        s.field("timing_session_name", self.str, "",
-            doc="Name of managed device timing session"),
+        s.field("control_hardware_io", self.bool_data, false,
+            doc="control flag for controlling hardware io"),
         s.field("clock_frequency", self.size,
             doc="HSI firmware clock frequency"),
         s.field("trigger_rate", self.double_data,

@@ -17,6 +17,7 @@
 
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
+#include "timing/HSIDesignInterface.hpp"
 
 #include "opmonlib/JSONTags.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
@@ -32,12 +33,15 @@
 #include <vector>
 
 namespace dunedaq {
+
 namespace hsilibs {
 
 HSIController::HSIController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 9) // 2nd arg: how many hw commands can this module send?
   , m_endpoint_state(0)
+  , m_control_hardware_io(false)
   , m_clock_frequency(62.5e6)
+  , m_thread(std::bind(&HSIController::gather_monitor_data, this, std::placeholders::_1))
 {
   register_command("conf", &HSIController::do_configure);
   register_command("start", &HSIController::do_start);
@@ -63,9 +67,25 @@ HSIController::do_configure(const nlohmann::json& data)
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
   m_hardware_state_recovery_enabled = m_hsi_configuration.hardware_state_recovery_enabled;
   m_timing_device = m_hsi_configuration.device;
-  m_timing_session_name = m_hsi_configuration.timing_session_name;
+  m_control_hardware_io = m_hsi_configuration.control_hardware_io;
 
-  TimingController::do_configure(data); // configure hw command connection
+  configure_uhal(data); // configure hw ipbus connection
+
+  if (m_timing_device.empty())
+  {
+    throw timinglibs::UHALDeviceNameIssue(ERS_HERE, "Device name for HSIController should not be empty");
+  }
+
+  try
+  {
+    m_hsi_device = std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(m_timing_device));
+  } catch (const uhal::exception::ConnectionUIDDoesNotExist& exception) {
+    std::stringstream message;
+    message << "UHAL device name not " << m_timing_device << " in connections file";
+    throw timinglibs::UHALDeviceNameIssue(ERS_HERE, message.str(), exception);
+  }
+
+  m_thread.start_working_thread("gather-hsi-op-mon-info");
 
   configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state.load());
 
@@ -104,7 +124,13 @@ HSIController::do_stop(const nlohmann::json& data)
 void
 HSIController::do_scrap(const nlohmann::json& data)
 {
+  m_thread.stop_working_thread();
+  scrap_uhal(data);
+
+  m_timing_device="";
+  m_control_hardware_io=false;
   m_endpoint_state = 0x0;
+
   TimingController::do_scrap(data);
 }
 
@@ -121,103 +147,101 @@ HSIController::do_change_rate(const nlohmann::json& data)
 void
 HSIController::send_configure_hardware_commands(const nlohmann::json& data)
 {
+  if (m_control_hardware_io)
+  {
+    do_hsi_io_reset(data);
+  }
   do_hsi_reset(data);
   do_hsi_endpoint_reset(data);
   do_hsi_configure(data);
 }
 
-timinglibs::timingcmd::TimingHwCmd
-HSIController::construct_hsi_hw_cmd(const std::string& cmd_id)
-{
-  timinglibs::timingcmd::TimingHwCmd hw_cmd;
-  hw_cmd.id = cmd_id;
-  hw_cmd.device = m_timing_device;
-  return hw_cmd;
-}
-
 void
 HSIController::do_hsi_io_reset(const nlohmann::json& data)
 {
-  auto hw_cmd = construct_hsi_hw_cmd("io_reset");
-  hw_cmd.payload = data;
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
 
-  send_hw_cmd(std::move(hw_cmd));
+  design->reset_io();
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
 
 void
 HSIController::do_hsi_endpoint_enable(const nlohmann::json& data)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd("endpoint_enable");
-
   timinglibs::timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   cmd_payload.endpoint_id = 0;
   timinglibs::timingcmd::from_json(data, cmd_payload);
 
-  timinglibs::timingcmd::to_json(hw_cmd.payload, cmd_payload);
-
   TLOG_DEBUG(0) << "ept enable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
 
-  send_hw_cmd(std::move(hw_cmd));
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->enable(cmd_payload.address, cmd_payload.partition);
+
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
 
 void
-HSIController::do_hsi_endpoint_disable(const nlohmann::json&)
+HSIController::do_hsi_endpoint_disable(const nlohmann::json& data)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd( "endpoint_disable");
-  send_hw_cmd(std::move(hw_cmd));
+  timinglibs::timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  cmd_payload.endpoint_id = 0;
+  timinglibs::timingcmd::from_json(data, cmd_payload);
+
+  TLOG_DEBUG(0) << "ept disable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->disable();
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
 
 void
 HSIController::do_hsi_endpoint_reset(const nlohmann::json& data)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd( "endpoint_reset");
-
   timinglibs::timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   cmd_payload.endpoint_id = 0;
   timinglibs::timingcmd::from_json(data, cmd_payload);
 
-  timinglibs::timingcmd::to_json(hw_cmd.payload, cmd_payload);
+  TLOG_DEBUG(0) << "ept reset hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
 
-  send_hw_cmd(std::move(hw_cmd));
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->reset(cmd_payload.address, cmd_payload.partition);
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
 
 void
 HSIController::do_hsi_reset(const nlohmann::json&)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd( "hsi_reset");
-  send_hw_cmd(std::move(hw_cmd));
+  TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi reset";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->get_hsi_node().reset_hsi();
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
 
 void
 HSIController::do_hsi_configure(const nlohmann::json& data)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd("hsi_configure");
-  hw_cmd.payload = data;
+  timinglibs::timingcmd::HSIConfigureCmdPayload cmd_payload;
+  timinglibs::timingcmd::from_json(data, cmd_payload);
 
-  if (!hw_cmd.payload.contains("random_rate"))
+  if (!data.contains("random_rate"))
   {
-    hw_cmd.payload["random_rate"] = m_hsi_configuration.trigger_rate;
+    cmd_payload.random_rate = m_hsi_configuration.trigger_rate;
   }
 
-  if (hw_cmd.payload["random_rate"] <= 0) {
-    ers::error(timinglibs::InvalidTriggerRateValue(ERS_HERE, hw_cmd.payload["random_rate"]));
+  if (cmd_payload.random_rate <= 0) {
+    ers::error(timinglibs::InvalidTriggerRateValue(ERS_HERE, cmd_payload.random_rate));
     return;
   }
 
   TLOG() << get_name() << " Setting emulated event rate [Hz] to: "
-         << hw_cmd.payload["random_rate"];
+         << cmd_payload.random_rate;
 
-  send_hw_cmd(std::move(hw_cmd));
+  TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi configure";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->configure_hsi(
+    cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask, cmd_payload.random_rate);
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
@@ -227,30 +251,38 @@ void HSIController::do_hsi_configure_trigger_rate_override(nlohmann::json data, 
   do_hsi_configure(data);
 }
 
+//void
+//TimingHardwareManager::hsi_reset(const timinglibs::timingcmd::TimingHwCmd& hw_cmd)
+//{
+//}
+
 void
 HSIController::do_hsi_start(const nlohmann::json&)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd( "hsi_start");
-  send_hw_cmd(std::move(hw_cmd));
+   TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi start";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->get_hsi_node().start_hsi();
   ++(m_sent_hw_command_counters.at(6).atomic);
 }
 
 void
 HSIController::do_hsi_stop(const nlohmann::json&)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd( "hsi_stop");
-  send_hw_cmd(std::move(hw_cmd));
+  TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi stop";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  design->get_hsi_node().stop_hsi();
   ++(m_sent_hw_command_counters.at(7).atomic);
 }
 
 void
 HSIController::do_hsi_print_status(const nlohmann::json&)
 {
-  timinglibs::timingcmd::TimingHwCmd hw_cmd =
-  construct_hsi_hw_cmd( "hsi_print_status");
-  send_hw_cmd(std::move(hw_cmd));
+  TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi print status";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+  TLOG() << std::endl << design->get_hsi_node().get_status();
   ++(m_sent_hw_command_counters.at(8).atomic);
 }
 
@@ -302,6 +334,48 @@ HSIController::process_device_info(nlohmann::json info)
     {
       m_device_ready = false;
       TLOG_DEBUG(2) << "HSI endpoint no longer ready";
+    }
+  }
+}
+
+void
+HSIController::gather_monitor_data(std::atomic<bool>& running_flag)
+{
+  while (running_flag.load()) {
+
+    opmonlib::InfoCollector info_collector;
+
+    // collect the data from the hardware
+    try
+    {
+      auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+      design->get_info(info_collector, 1);
+    } catch (const std::exception& excpt) {
+      ers::warning(timinglibs::FailedToCollectOpMonInfo(ERS_HERE, m_timing_device, excpt));
+    }
+
+    nlohmann::json info = info_collector.get_collected_infos();
+    process_device_info(info);
+
+    auto prev_gather_time = std::chrono::steady_clock::now();
+    auto next_gather_time = prev_gather_time + std::chrono::microseconds(100000);
+
+    // check running_flag periodically
+    auto slice_period = std::chrono::microseconds(10000);
+    auto next_slice_gather_time = prev_gather_time + slice_period;
+
+    bool break_flag = false;
+    while (next_gather_time > next_slice_gather_time + slice_period) {
+      if (!running_flag.load()) {
+        TLOG_DEBUG(0) << "while waiting to gather data, negative run flag detected.";
+        break_flag = true;
+        break;
+      }
+      std::this_thread::sleep_until(next_slice_gather_time);
+      next_slice_gather_time = next_slice_gather_time + slice_period;
+    }
+    if (break_flag == false) {
+      std::this_thread::sleep_until(next_gather_time);
     }
   }
 }
