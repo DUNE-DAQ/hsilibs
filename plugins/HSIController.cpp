@@ -85,7 +85,7 @@ HSIController::do_configure(const nlohmann::json& data)
     throw timinglibs::UHALDeviceNameIssue(ERS_HERE, message.str(), exception);
   }
 
-  m_thread.start_working_thread("gather-hsi-op-mon-info");
+  m_thread.start_working_thread("gather-hsi-info");
 
   configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state.load());
 
