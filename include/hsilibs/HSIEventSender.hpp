@@ -62,6 +62,7 @@ protected:
   std::shared_ptr<hsievent_sender_ct> m_hsievent_sender;
 
   // push events to HSIEvent output queue
+  virtual bool ready_to_send(std::chrono::milliseconds timeout);
   virtual void send_hsi_event(dfmessages::HSIEvent& event);
   virtual void send_raw_hsi_data(const std::array<uint32_t, 7>& raw_data, raw_sender_ct* sender);
 
