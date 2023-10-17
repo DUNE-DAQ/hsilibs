@@ -101,7 +101,7 @@ if we_are_running_on_an_iceberg_computer and the_global_timing_session_is_runnin
     conf_dict["hsi"]["use_fake_hsi"] = False
     conf_dict["hsi"]["host_timing_hsi"] = timing_host
     conf_dict["hsi"]["hsi_re_mask"] = 1
-    conf_dict["hsi"]["hsi_hw_connections_file"] = os.path.abspath(f"{my_dir}/../../daq-systemtest/config/timing_systems/connections.xml")
+    conf_dict["hsi"]["hsi_hw_connections_file"] = os.path.abspath(f"{my_dir}/../../daqsystemtest/config/timing_systems/connections.xml")
     conf_dict["timing"]["timing_session_name"] = "iceberg-integtest-timing-session"
 
     trigger_factor_conf = copy.deepcopy(conf_dict)
@@ -166,7 +166,7 @@ def test_data_files(run_nanorc):
         print(f"The global timing session does not appear to be running on this computer ({hostname}).")
         print("    Please check whether it is, and start it, if needed.")
         var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
-        var2=os.path.realpath(os.path.dirname(__file__) + "/../../daq-systemtest")
+        var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
         var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
         print(f"{var1}{var2}{var3}")
         print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
