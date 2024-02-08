@@ -14,7 +14,6 @@
 #include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
@@ -48,11 +47,11 @@ HSIReadout::HSIReadout(const std::string& name)
 }
 
 void
-HSIReadout::init(const nlohmann::json& data)
+HSIReadout::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-  HSIEventSender::init(data);
-  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(appfwk::connection_uid(data, "output"));
+  HSIEventSender::init(mcfg);
+  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>("get output connection uid from config");
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 

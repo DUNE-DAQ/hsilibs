@@ -38,7 +38,7 @@ public:
   {}
 
   // Override config for pipeline setup
-  void conf(const nlohmann::json& args) override;
+  void conf(const appdal::ReadoutModule* conf) override;
   
 protected:
   /**
