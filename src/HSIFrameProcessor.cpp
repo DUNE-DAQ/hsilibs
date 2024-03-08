@@ -18,10 +18,10 @@ namespace dunedaq {
 namespace hsilibs {
 
 void 
-HSIFrameProcessor::conf(const nlohmann::json& args)
+HSIFrameProcessor::conf(const appdal::ReadoutModule* conf)
 {
   // m_tasklist.push_back( std::bind(&HSIFrameProcessor::frame_error_check, this, std::placeholders::_1) );
-  inherited::conf(args);
+  inherited::conf(conf);
 }
 
 /**

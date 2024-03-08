@@ -13,11 +13,13 @@
 
 #include "utilities/Issues.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "dfmessages/HSIEvent.hpp"
+#include "appdal/FakeHSIEventGenerator.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "coredal/DaqModule.hpp"
+#include "coredal/Connection.hpp"
 #include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
@@ -36,9 +38,9 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
   , m_clock_frequency(50e6)
-  , m_trigger_rate(1) // Hz
+  , m_trigger_rate(1)        // Hz
   , m_active_trigger_rate(1) // Hz
-  , m_event_period(1e6) // us
+  , m_event_period(1e6)      // us
   , m_timestamp_offset(0)
   , m_hsi_device_id(0)
   , m_signal_emulation_mode(0)
@@ -55,11 +57,25 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
 }
 
 void
-FakeHSIEventGenerator::init(const nlohmann::json& init_data)
+FakeHSIEventGenerator::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-  HSIEventSender::init(init_data);
-  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(appfwk::connection_uid(init_data, "output"));
+  HSIEventSender::init(mcfg);
+
+  auto mdal = mcfg->module<appdal::FakeHSIEventGenerator>(get_name()); // Only need generic DaqModule for output
+
+  if (!mdal) {
+    throw appfwk::CommandFailed(ERS_HERE, "init", get_name(), "Unable to retrieve configuration object");
+  }
+
+  for (auto con : mdal->get_outputs()) {
+    if (con->get_data_type() == datatype_to_string<HSI_FRAME_STRUCT>()) {
+
+      m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(con->UID());
+    }
+  }
+
+  m_params = mdal->get_configuration();
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
@@ -79,23 +95,17 @@ FakeHSIEventGenerator::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 }
 
 void
-FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
+FakeHSIEventGenerator::do_configure(const nlohmann::json& /*obj*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
-  auto params = obj.get<fakehsieventgenerator::Conf>();
-
-  m_clock_frequency = params.clock_frequency;
-  if (params.trigger_rate>0)
-  {
-    m_trigger_rate.store(params.trigger_rate);
+  m_clock_frequency = m_params->get_clock_frequency();
+  if (m_params->get_trigger_rate() > 0) {
+    m_trigger_rate.store(m_params->get_trigger_rate());
     m_active_trigger_rate.store(m_trigger_rate.load());
+  } else {
+    ers::fatal(InvalidTriggerRateValue(ERS_HERE, m_params->get_trigger_rate()));
   }
-  else
-  {
-    ers::fatal(InvalidTriggerRateValue(ERS_HERE, params.trigger_rate));
-  }
-
 
   // time between HSI events [us]
   m_event_period.store(1.e6 / m_active_trigger_rate.load());
@@ -103,11 +113,11 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
          << m_event_period.load();
 
   // offset in units of clock ticks, positive offset increases timestamp
-  m_timestamp_offset = params.timestamp_offset;
-  m_hsi_device_id = params.hsi_device_id;
-  m_signal_emulation_mode = params.signal_emulation_mode;
-  m_mean_signal_multiplicity = params.mean_signal_multiplicity;
-  m_enabled_signals = params.enabled_signals;
+  m_timestamp_offset = m_params->get_timestamp_offset();
+  m_hsi_device_id = m_params->get_hsi_device_id();
+  m_signal_emulation_mode = m_params->get_signal_emulation_mode();
+  m_mean_signal_multiplicity = m_params->get_mean_signal_multiplicity();
+  m_enabled_signals = m_params->get_enabled_signals();
 
   // configure the random distributions
   m_poisson_distribution = std::poisson_distribution<uint64_t>(m_mean_signal_multiplicity); // NOLINT(build/unsigned)
@@ -124,11 +134,12 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_timestamp_estimator.reset(new utilities::TimestampEstimator(start_params.run, m_clock_frequency));
 
   m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(".*");
-  m_timesync_receiver->add_callback(std::bind(&utilities::TimestampEstimator::timesync_callback<dfmessages::TimeSync>,
-                                    reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
-                                    std::placeholders::_1));
+  m_timesync_receiver->add_callback(
+    std::bind(&utilities::TimestampEstimator::timesync_callback<dfmessages::TimeSync>,
+              reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
+              std::placeholders::_1));
 
-  if (start_params.trigger_rate>0) {
+  if (start_params.trigger_rate > 0) {
     m_active_trigger_rate.store(start_params.trigger_rate);
 
     // time between HSI events [us]
@@ -142,26 +153,25 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_run_number.store(start_params.run);
 
   // 28-Sep-2023, KAB: added code to wait for the Sender connection to be ready.
-  // This code needs to come *before* the Sender connection is first used, and 
+  // This code needs to come *before* the Sender connection is first used, and
   // before any threads that use the Sender connection are start, and it needs
   // to come *after* any Receiver connections are created/started so that it
   // doesn't block other modules that are trying to connect to this one.
   // We retry for 10 seconds.  That seems like it should be plenty long enough
   // for the connection to be established but short enough so that it doesn't
   // annoy users if/when the connection readiness times out.
-  if (! ready_to_send(std::chrono::milliseconds(1))) {
+  if (!ready_to_send(std::chrono::milliseconds(1))) {
     bool ready = false;
     for (int loop_counter = 0; loop_counter < 10; ++loop_counter) {
-      TLOG() << get_name() << " Waiting for the Sender for the " <<  m_hsievent_send_connection
-             << " connection to be ready to send messages, loop_count=" << (loop_counter+1);
+      TLOG() << get_name() << " Waiting for the Sender for the " << m_hsievent_send_connection
+             << " connection to be ready to send messages, loop_count=" << (loop_counter + 1);
       if (ready_to_send(std::chrono::milliseconds(1000))) {
         ready = true;
         break;
       }
     }
     if (ready) {
-      TLOG() << get_name() << " The Sender for the " <<  m_hsievent_send_connection
-             << " connection is now ready.";
+      TLOG() << get_name() << " The Sender for the " << m_hsievent_send_connection << " connection is now ready.";
     } else {
       throw(SenderReadyTimeout(ERS_HERE, get_name(), m_hsievent_send_connection));
     }
@@ -197,7 +207,8 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
   m_thread.stop_working_thread();
 
   m_timesync_receiver->remove_callback();
-  TLOG() << get_name() << ": received " << m_timestamp_estimator->get_received_timesync_count() << " TimeSync messages.";
+  TLOG() << get_name() << ": received " << m_timestamp_estimator->get_received_timesync_count()
+         << " TimeSync messages.";
 
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
 
@@ -205,7 +216,7 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
   m_event_period.store(1.e6 / m_active_trigger_rate.load());
   TLOG() << get_name() << " Updating trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
          << m_event_period.load();
-  
+
   TLOG() << get_name() << " successfully stopped";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_stop() method";
 }
@@ -249,8 +260,8 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
 
   // Wait for there to be a valid timestsamp estimate before we start
   // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
-  if (m_timestamp_estimator.get() != nullptr &&
-      m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == utilities::TimestampEstimatorBase::kInterrupted) {
+  if (m_timestamp_estimator.get() != nullptr && m_timestamp_estimator->wait_for_valid_timestamp(running_flag) ==
+                                                  utilities::TimestampEstimatorBase::kInterrupted) {
     ers::error(utilities::FailedToGetTimestampEstimate(ERS_HERE));
     return;
   }
@@ -268,11 +279,11 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
   while (!break_flag) {
 
     // emulate some signals
-    uint32_t signal_map = generate_signal_map(); // NOLINT(build/unsigned)
+    uint32_t signal_map = generate_signal_map();           // NOLINT(build/unsigned)
     uint32_t trigger_map = signal_map & m_enabled_signals; // NOLINT(build/unsigned)
-  
+
     TLOG_DEBUG(3) << "masked gen. map:" << std::bitset<32>(trigger_map);
-  
+
     // if at least one active signal, send a HSIEvent
     if (trigger_map && m_timestamp_estimator.get() != nullptr) {
 
@@ -284,10 +295,11 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
 
       m_last_generated_timestamp.store(ts);
 
-      dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, trigger_map, ts, m_generated_counter, m_run_number);
+      dfmessages::HSIEvent event =
+        dfmessages::HSIEvent(m_hsi_device_id, trigger_map, ts, m_generated_counter, m_run_number);
       send_hsi_event(event);
 
-      // Send raw HSI data to a DLH 
+      // Send raw HSI data to a DLH
       std::array<uint32_t, 7> hsi_struct;
       hsi_struct[0] = (0x1 << 6) | 0x1; // DAQHeader, frame version: 1, det id: 1
       hsi_struct[1] = ts;
@@ -297,34 +309,23 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
       hsi_struct[5] = trigger_map;
       hsi_struct[6] = m_generated_counter;
 
-      TLOG_DEBUG(3) << get_name() << ": Formed HSI_FRAME_STRUCT "
-            << std::hex 
-            << "0x"   << hsi_struct[0]
-            << ", 0x" << hsi_struct[1]
-            << ", 0x" << hsi_struct[2]
-            << ", 0x" << hsi_struct[3]
-            << ", 0x" << hsi_struct[4]
-            << ", 0x" << hsi_struct[5]
-            << ", 0x" << hsi_struct[6]
-            << "\n";
+      TLOG_DEBUG(3) << get_name() << ": Formed HSI_FRAME_STRUCT " << std::hex << "0x" << hsi_struct[0] << ", 0x"
+                    << hsi_struct[1] << ", 0x" << hsi_struct[2] << ", 0x" << hsi_struct[3] << ", 0x" << hsi_struct[4]
+                    << ", 0x" << hsi_struct[5] << ", 0x" << hsi_struct[6] << "\n";
 
       send_raw_hsi_data(hsi_struct, m_raw_hsi_data_sender.get());
-
     }
 
     // sleep for the configured event period, if trigger ticks are not 0, otherwise do not send anything
-    if (m_active_trigger_rate.load() > 0)
-    {
+    if (m_active_trigger_rate.load() > 0) {
       auto next_gen_time = prev_gen_time + std::chrono::microseconds(m_event_period.load());
 
       // check running_flag periodically
       auto flag_check_period = std::chrono::milliseconds(1);
       auto next_flag_check_time = prev_gen_time + flag_check_period;
 
-      while (next_gen_time > next_flag_check_time + flag_check_period)
-      {
-        if (!running_flag.load())
-        {
+      while (next_gen_time > next_flag_check_time + flag_check_period) {
+        if (!running_flag.load()) {
           TLOG_DEBUG(0) << "while waiting to generate fake hsi event, negative run gatherer flag detected.";
           break_flag = true;
           break;
@@ -332,8 +333,7 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
         std::this_thread::sleep_until(next_flag_check_time);
         next_flag_check_time = next_flag_check_time + flag_check_period;
       }
-      if (break_flag == false)
-      {
+      if (break_flag == false) {
         std::this_thread::sleep_until(next_gen_time);
       }
 

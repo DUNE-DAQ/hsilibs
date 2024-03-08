@@ -36,7 +36,7 @@ public:
   HSIDataLinkHandler(HSIDataLinkHandler&&) = delete;                 ///< HSIDataLinkHandler is not move-constructible
   HSIDataLinkHandler& operator=(HSIDataLinkHandler&&) = delete;      ///< HSIDataLinkHandler is not move-assignable
 
-  void init(const data_t& args) override;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:

@@ -45,7 +45,7 @@ HSIDataLinkHandler::HSIDataLinkHandler(const std::string& name)
 }
 
 void
-HSIDataLinkHandler::init(const data_t& args)
+HSIDataLinkHandler::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
@@ -57,11 +57,11 @@ HSIDataLinkHandler::init(const data_t& args)
                     rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
                     rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
                     hsilibs::HSIFrameProcessor>>(m_run_marker);
-  m_readout_impl->init(args);
+  m_readout_impl->init(mcfg->module<appdal::ReadoutModule>(get_name()));
   if (m_readout_impl == nullptr)
   {
     TLOG() << get_name() << "Initialize HSIDataLinkHandler FAILED! ";
-    throw readoutlibs::FailedReadoutInitialization(ERS_HERE, get_name(), args.dump()); // 4 json ident
+    throw readoutlibs::FailedReadoutInitialization(ERS_HERE, get_name(), "OKS Config"); // 4 json ident
   }
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }

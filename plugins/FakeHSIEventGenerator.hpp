@@ -17,6 +17,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
+#include "appdal/FakeHSIEventGeneratorConf.hpp"
 #include "dfmessages/TimeSync.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
@@ -51,7 +52,7 @@ public:
   FakeHSIEventGenerator(FakeHSIEventGenerator&&) = delete; ///< FakeHSIEventGenerator is not move-constructible
   FakeHSIEventGenerator& operator=(FakeHSIEventGenerator&&) = delete; ///< FakeHSIEventGenerator is not move-assignable
 
-  void init(const nlohmann::json& obj) override;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
@@ -82,6 +83,7 @@ private:
 
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
+  const appdal::FakeHSIEventGeneratorConf* m_params;
   uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
   std::atomic<float> m_trigger_rate;
   std::atomic<float> m_active_trigger_rate;

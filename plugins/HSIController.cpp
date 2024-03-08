@@ -20,7 +20,6 @@
 #include "timing/HSIDesignInterface.hpp"
 
 #include "opmonlib/JSONTags.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
