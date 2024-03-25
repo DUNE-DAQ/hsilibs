@@ -63,12 +63,12 @@ HSIController::HSIController(const std::string& name)
 void
 HSIController::do_configure(const nlohmann::json& data)
 {
-  m_hsi_configuration = data.get<hsicontroller::ConfParams>();
-  m_hardware_state_recovery_enabled = m_hsi_configuration.hardware_state_recovery_enabled;
-  m_timing_device = m_hsi_configuration.device;
-  m_control_hardware_io = m_hsi_configuration.control_hardware_io;
+  m_hsi_configuration = m_params->cast<timinglibs::dal::HSIController>();
+  m_hardware_state_recovery_enabled = m_hsi_configuration->get_hardware_state_recovery_enabled();
+  m_timing_device = m_hsi_configuration->get_device();
+  m_control_hardware_io = m_hsi_configuration->get_control_hardware_io();
 
-  configure_uhal(data); // configure hw ipbus connection
+  configure_uhal(m_hsi_configuration->get_uhal_config()); // configure hw ipbus connection
 
   if (m_timing_device.empty())
   {
@@ -103,15 +103,15 @@ HSIController::do_start(const nlohmann::json& data)
   {
     TLOG() << get_name() << " Changing rate: trigger_rate "
            << start_params.trigger_rate;  
-    do_hsi_configure_trigger_rate_override(m_hsi_configuration, start_params.trigger_rate);
+    do_hsi_configure_trigger_rate_override(data, start_params.trigger_rate);
   }
   else
   {
     TLOG() << get_name() << " Changing rate: trigger_rate "
-           << m_hsi_configuration.trigger_rate;  
-    do_hsi_configure(m_hsi_configuration);
+           << m_hsi_configuration->get_trigger_rate();  
+    do_hsi_configure(data);
   }
-  do_hsi_start(m_hsi_configuration);
+  do_hsi_start(data);
 }
 
 void
@@ -124,7 +124,7 @@ void
 HSIController::do_scrap(const nlohmann::json& data)
 {
   m_thread.stop_working_thread();
-  scrap_uhal(data);
+  scrap_uhal();
 
   m_timing_device="";
   m_control_hardware_io=false;
@@ -140,7 +140,7 @@ HSIController::do_change_rate(const nlohmann::json& data)
   TLOG() << get_name() << " Changing rate: trigger_rate "
          << change_rate_params.trigger_rate;
 
-  do_hsi_configure_trigger_rate_override(m_hsi_configuration, change_rate_params.trigger_rate);
+  do_hsi_configure_trigger_rate_override(data, change_rate_params.trigger_rate);
 }
 
 void
@@ -156,7 +156,7 @@ HSIController::send_configure_hardware_commands(const nlohmann::json& data)
 }
 
 void
-HSIController::do_hsi_io_reset(const nlohmann::json& data)
+HSIController::do_hsi_io_reset(const nlohmann::json& )
 {
   auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
 
@@ -225,7 +225,7 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
 
   if (!data.contains("random_rate"))
   {
-    cmd_payload.random_rate = m_hsi_configuration.trigger_rate;
+    cmd_payload.random_rate = m_hsi_configuration->get_trigger_rate();
   }
 
   if (cmd_payload.random_rate <= 0) {

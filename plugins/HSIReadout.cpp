@@ -51,6 +51,8 @@ HSIReadout::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
+  m_params = mcfg->module<timinglibs::dal::HSIReadout>(get_name());
+
   m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>("get output connection uid from config");
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
@@ -60,16 +62,15 @@ HSIReadout::do_configure(const nlohmann::json& data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
-  m_cfg = data.get<hsireadout::ConfParams>();
-  m_readout_period = m_cfg.readout_period;
+  m_readout_period = m_params->get_readout_period();
 
-  configure_uhal(data); // configure hw ipbus connection
+  configure_uhal(m_params->get_uhal_config()); // configure hw ipbus connection
 
-  if (m_cfg.hsi_device_name.empty())
+  if (m_params->get_hsi_device_name().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name for HSIReadout should not be empty");
   }
-  m_hsi_device_name = m_cfg.hsi_device_name;
+  m_hsi_device_name = m_params->get_hsi_device_name();
 
   try {
     m_hsi_device = std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(m_hsi_device_name));
@@ -106,7 +107,7 @@ void
 HSIReadout::do_scrap(const nlohmann::json& data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
-  scrap_uhal(data);
+  scrap_uhal();
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_scrap() method";
 }
 
