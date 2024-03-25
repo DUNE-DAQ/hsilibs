@@ -12,8 +12,7 @@
 #ifndef HSILIBS_PLUGINS_HSICONTROLLER_HPP_
 #define HSILIBS_PLUGINS_HSICONTROLLER_HPP_
 
-#include "hsilibs/hsicontroller/Nljs.hpp"
-#include "hsilibs/hsicontroller/Structs.hpp"
+#include "timinglibs/dal/HSIController.hpp"
 #include "hsilibs/hsicontrollerinfo/InfoNljs.hpp"
 #include "hsilibs/hsicontrollerinfo/InfoStructs.hpp"
 
@@ -51,7 +50,7 @@ public:
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
 
 private:
-  hsicontroller::ConfParams m_hsi_configuration;
+  const timinglibs::dal::HSIController* m_hsi_configuration;
 
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   bool m_control_hardware_io;

@@ -14,6 +14,7 @@
 #include "hsilibs/hsireadoutinfo/InfoStructs.hpp"
 
 #include "timinglibs/TimingHardwareInterface.hpp"
+#include "timinglibs/dal/HSIReadout.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "dfmessages/HSIEvent.hpp"
@@ -85,6 +86,9 @@ private:
   std::shared_mutex m_buffer_counts_mutex;
   void update_buffer_counts(uint16_t new_count); // NOLINT(build/unsigned)
   double read_average_buffer_counts();
+
+  const timinglibs::dal::HSIReadout* m_params;
+
 };
 } // namespace hsilibs
 } // namespace dunedaq
