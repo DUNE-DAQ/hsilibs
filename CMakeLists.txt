@@ -28,12 +28,6 @@ find_package(Boost COMPONENTS unit_test_framework iostreams REQUIRED)
 set(BOOST_LIBS Boost::iostreams ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_LIBRARIES})
 
 daq_codegen( 
-			 fakehsieventgenerator.jsonnet
-			 hsicontroller.jsonnet
-			 hsireadout.jsonnet
-			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
-
-daq_codegen( 
        fakehsieventgeneratorinfo.jsonnet 
 			 hsicontrollerinfo.jsonnet 
 			 hsireadoutinfo.jsonnet 
