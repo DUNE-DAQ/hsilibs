@@ -8,8 +8,6 @@
 #define HSILIBS_PLUGINS_HSIREADOUT_HPP_
 
 #include "hsilibs/HSIEventSender.hpp"
-#include "hsilibs/hsireadout/Nljs.hpp"
-#include "hsilibs/hsireadout/Structs.hpp"
 #include "hsilibs/hsireadoutinfo/InfoNljs.hpp"
 #include "hsilibs/hsireadoutinfo/InfoStructs.hpp"
 
@@ -61,7 +59,6 @@ public:
 
 private:
   // Commands
-  hsireadout::ConfParams m_cfg;
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;

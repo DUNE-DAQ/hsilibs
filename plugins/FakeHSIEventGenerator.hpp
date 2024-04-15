@@ -10,8 +10,6 @@
 #include "hsilibs/HSIEventSender.hpp"
 
 #include "utilities/TimestampEstimator.hpp"
-#include "hsilibs/fakehsieventgenerator/Nljs.hpp"
-#include "hsilibs/fakehsieventgenerator/Structs.hpp"
 #include "hsilibs/fakehsieventgeneratorinfo/InfoNljs.hpp"
 #include "hsilibs/fakehsieventgeneratorinfo/InfoStructs.hpp"
 
