@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="ASCII"?>
+
+<!-- oks-data version 2.2 -->
+
+
+<!DOCTYPE oks-data [
+  <!ELEMENT oks-data (info, (include)?, (comments)?, (obj)+)>
+  <!ELEMENT info EMPTY>
+  <!ATTLIST info
+      name CDATA #IMPLIED
+      type CDATA #IMPLIED
+      num-of-items CDATA #REQUIRED
+      oks-format CDATA #FIXED "data"
+      oks-version CDATA #REQUIRED
+      created-by CDATA #IMPLIED
+      created-on CDATA #IMPLIED
+      creation-time CDATA #IMPLIED
+      last-modified-by CDATA #IMPLIED
+      last-modified-on CDATA #IMPLIED
+      last-modification-time CDATA #IMPLIED
+  >
+  <!ELEMENT include (file)*>
+  <!ELEMENT file EMPTY>
+  <!ATTLIST file
+      path CDATA #REQUIRED
+  >
+  <!ELEMENT comments (comment)*>
+  <!ELEMENT comment EMPTY>
+  <!ATTLIST comment
+      creation-time CDATA #REQUIRED
+      created-by CDATA #REQUIRED
+      created-on CDATA #REQUIRED
+      author CDATA #REQUIRED
+      text CDATA #REQUIRED
+  >
+  <!ELEMENT obj (attr | rel)*>
+  <!ATTLIST obj
+      class CDATA #REQUIRED
+      id CDATA #REQUIRED
+  >
+  <!ELEMENT attr (data)*>
+  <!ATTLIST attr
+      name CDATA #REQUIRED
+      type (bool|s8|u8|s16|u16|s32|u32|s64|u64|float|double|date|time|string|uid|enum|class|-) "-"
+      val CDATA ""
+  >
+  <!ELEMENT data EMPTY>
+  <!ATTLIST data
+      val CDATA #REQUIRED
+  >
+  <!ELEMENT rel (ref)*>
+  <!ATTLIST rel
+      name CDATA #REQUIRED
+      class CDATA ""
+      id CDATA ""
+  >
+  <!ELEMENT ref EMPTY>
+  <!ATTLIST ref
+      class CDATA #REQUIRED
+      id CDATA #REQUIRED
+  >
+]>
+
+<oks-data>
+
+<info name="" type="" num-of-items="2" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240417T160310"/>
+
+<include>
+ <file path="/home/jr19588/NFD_DEV_240507_C8/sourcecode/timinglibs/schema/timinglibs/timing.schema.xml" />
+ <file path="schema/coredal/dunedaq.schema.xml"/>
+</include>
+
+<obj class="DaqApplication" id="tmc">
+    <attr name="application_name" type="string" val="daq_application"/>
+</obj>
+
+<obj class="DaqApplication" id="thi">
+    <attr name="application_name" type="string" val="daq_application"/>
+</obj>
+
+<obj class="Session" id="test-session">
+    <attr name="use_connectivity_server" type="bool" val="1"/>
+    <attr name="connectivity_service_interval_ms" type="u32" val="2000"/>
+    <attr name="data_request_timeout_ms" type="u32" val="1000"/>
+    <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
+    <attr name="rte_script" type="string" val="/home/jr19588/NFD_DEV_240514_C8/install/daq_app_rte.sh"/>
+    <rel name="environment">
+     <ref class="VariableSet" id="common-env"/>
+    </rel>
+    <rel name="segment" class="Segment" id="generated-segment"/>  
+</obj>                                                                              
+
+
+<obj class="Segment" id="generated-segment">
+    <rel name="applications">
+     <ref class="DaqApplication" id="tmc"/>
+     <ref class="DaqApplication" id="thi"/>
+    </rel>
+    <rel name="controller" class="RCApplication" id="my-controller"/>
+</obj>
+
+
+<obj class="ConnectionService" id="connectionservice">
+    <attr name="enabled" type="bool" val="1"/>
+    <attr name="application_name" type="string" val="gunicorn"/>
+    <attr name="commandline_parameters" type="string" val="--bind=0.0.0.0:15000 --workers=1 --worker-class=gthread --threads=2 --timeout=0 --pid=connectionservice_15000.pid connection-service.connection-flask:app"/>
+    <attr name="port" type="u16" val="15000"/>
+    <attr name="threads" type="u16" val="1"/>
+    <rel name="applicationEnvironment">
+     <ref class="VariableSet" id="consvc_ssh"/>
+    </rel>
+    <rel name="runs_on" class="VirtualHost" id="connectionservice"/>
+</obj>
+
+   <obj class="VariableSet" id="common-env">
+    <rel name="contains">
+     <ref class="Variable" id="DUNEDAQ_ERS_ERROR"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_FATAL"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_INFO"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_VERBOSITY_LEVEL"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_WARNING"/>
+     <ref class="Variable" id="DUNEDAQ_PARTITION"/>
+    </rel>
+   </obj>
+
+<obj class="VariableSet" id="daq_application_ssh">
+    <rel name="contains">
+     <ref class="Variable" id="CMD_FAC"/>
+     <ref class="Variable" id="CONNECTION_SERVER"/>
+     <ref class="Variable" id="DETCHANNELMAPS_SHARE"/>
+     <ref class="Variable" id="INFO_SVC"/>
+     <ref class="Variable" id="TIMING_SHARE"/>
+     <ref class="Variable" id="TRACE_FILE"/>
+    </rel>
+</obj>
+
+<obj class="TimingController" id="TimingController1">
+ <attr name="device_str" type="string" val="TEST_CTL"/>
+ <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+ <attr name="timing_session_name" type="string" val="test"/>
+</obj>
+
+<obj class="HSIController" id="HSIController1">
+    <attr name="connections_file" type="string" val="timinglibs/config/.test_connections.xml"/>
+    <attr name="clock_frequency" type="string" val=""/>
+    <attr name="trigger_rate" type="string" val=""/>
+    <attr name="address" type="string" val=""/>
+    <attr name="partition" type="string" val=""/>
+    <attr name="control_hardware_io" type="string" val=""/>
+    <attr name="rising_edge_mask" type="string" val=""/>
+    <attr name="falling_edge_mask" type="string" val=""/>
+    <attr name="invert_edge_mask" type="string" val=""/>
+    <attr name="data_source" type="string" val=""/>
+</obj>
+
+</oks-data>
