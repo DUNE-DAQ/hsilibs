@@ -81,8 +81,8 @@ conf_dict["boot"]["connectivity_service_port"] = conn_svc_port
 conf_dict["detector"]["clock_speed_hz"] = 62500000
 conf_dict["readout"]["latency_buffer_size"] = 200000
 conf_dict["readout"]["use_fake_data_producers"] = True
-conf_dict["trigger"]["trigger_window_before_ticks"] = 1000
-conf_dict["trigger"]["trigger_window_after_ticks"] = 1000
+conf_dict["trigger"]["ttcm_input_map"] = [{'signal': 128, 'tc_type_name': 'kTLUFakeTrigger',
+                                           'time_before': 1000, 'time_after': 1000}]
 
 conf_dict["dataflow"]["apps"] = [] # Remove preconfigured dataflow0 app
 for df_app in range(number_of_dataflow_apps):
@@ -91,8 +91,6 @@ for df_app in range(number_of_dataflow_apps):
     conf_dict["dataflow"]["apps"].append(dfapp_conf)
 
 if we_are_running_on_an_iceberg_computer and the_global_timing_session_is_running and the_connection_server_is_running:
-    conf_dict["trigger"]["ttcm_s1"] = 128
-    conf_dict["trigger"]["hsi_trigger_type_passthrough"] = True
     conf_dict["hsi"]["random_trigger_rate_hz"] = base_trigger_rate
     conf_dict["hsi"]["control_hsi_hw"]= True
     conf_dict["hsi"]["hsi_device_name"]= "BOREAS_TLU_ICEBERG"
