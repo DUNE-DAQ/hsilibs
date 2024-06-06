@@ -17,7 +17,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
-#include "appdal/FakeHSIEventGeneratorConf.hpp"
+#include "appmodel/FakeHSIEventGeneratorConf.hpp"
 #include "dfmessages/TimeSync.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
@@ -83,7 +83,7 @@ private:
 
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
-  const appdal::FakeHSIEventGeneratorConf* m_params;
+  const appmodel::FakeHSIEventGeneratorConf* m_params;
   uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
   std::atomic<float> m_trigger_rate;
   std::atomic<float> m_active_trigger_rate;
