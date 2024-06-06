@@ -57,7 +57,7 @@ HSIDataLinkHandler::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
                     rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
                     rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
                     hsilibs::HSIFrameProcessor>>(m_run_marker);
-  m_readout_impl->init(mcfg->module<appdal::ReadoutModule>(get_name()));
+  m_readout_impl->init(mcfg->module<appmodel::ReadoutModule>(get_name()));
   if (m_readout_impl == nullptr)
   {
     TLOG() << get_name() << "Initialize HSIDataLinkHandler FAILED! ";

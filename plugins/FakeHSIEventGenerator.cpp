@@ -15,11 +15,11 @@
 
 #include "appfwk/app/Nljs.hpp"
 #include "dfmessages/HSIEvent.hpp"
-#include "appdal/FakeHSIEventGenerator.hpp"
+#include "appmodel/FakeHSIEventGenerator.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "coredal/DaqModule.hpp"
-#include "coredal/Connection.hpp"
+#include "confmodel/DaqModule.hpp"
+#include "confmodel/Connection.hpp"
 #include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
@@ -62,7 +62,7 @@ FakeHSIEventGenerator::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
-  auto mdal = mcfg->module<appdal::FakeHSIEventGenerator>(get_name()); // Only need generic DaqModule for output
+  auto mdal = mcfg->module<appmodel::FakeHSIEventGenerator>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
     throw appfwk::CommandFailed(ERS_HERE, "init", get_name(), "Unable to retrieve configuration object");

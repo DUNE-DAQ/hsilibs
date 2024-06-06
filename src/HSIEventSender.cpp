@@ -12,8 +12,8 @@
 #include "appfwk/app/Nljs.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "coredal/DaqModule.hpp"
-#include "coredal/Connection.hpp"
+#include "confmodel/DaqModule.hpp"
+#include "confmodel/Connection.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -38,7 +38,7 @@ HSIEventSender::HSIEventSender(const std::string& name)
 void
 HSIEventSender::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
-  auto mdal = mcfg->module<coredal::DaqModule>(get_name()); // Only need generic DaqModule for output
+  auto mdal = mcfg->module<confmodel::DaqModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
     throw appfwk::CommandFailed(ERS_HERE, "init", get_name(), "Unable to retrieve configuration object");
