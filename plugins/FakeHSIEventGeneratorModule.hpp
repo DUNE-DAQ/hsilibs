@@ -34,23 +34,23 @@ namespace dunedaq {
 namespace hsilibs {
 
 /**
- * @brief FakeHSIEventGenerator generates fake HSIEvent messages
+ * @brief FakeHSIEventGeneratorModule generates fake HSIEvent messages
  * and pushes them to the configured output queue.
  */
-class FakeHSIEventGenerator : public hsilibs::HSIEventSender
+class FakeHSIEventGeneratorModule : public hsilibs::HSIEventSender
 {
 public:
   /**
-   * @brief FakeHSIEventGenerator Constructor
-   * @param name Instance name for this FakeHSIEventGenerator instance
+   * @brief FakeHSIEventGeneratorModule Constructor
+   * @param name Instance name for this FakeHSIEventGeneratorModule instance
    */
-  explicit FakeHSIEventGenerator(const std::string& name);
+  explicit FakeHSIEventGeneratorModule(const std::string& name);
 
-  FakeHSIEventGenerator(const FakeHSIEventGenerator&) = delete; ///< FakeHSIEventGenerator is not copy-constructible
-  FakeHSIEventGenerator& operator=(const FakeHSIEventGenerator&) =
-    delete;                                                ///< FakeHSIEventGenerator is not copy-assignable
-  FakeHSIEventGenerator(FakeHSIEventGenerator&&) = delete; ///< FakeHSIEventGenerator is not move-constructible
-  FakeHSIEventGenerator& operator=(FakeHSIEventGenerator&&) = delete; ///< FakeHSIEventGenerator is not move-assignable
+  FakeHSIEventGeneratorModule(const FakeHSIEventGeneratorModule&) = delete; ///< FakeHSIEventGeneratorModule is not copy-constructible
+  FakeHSIEventGeneratorModule& operator=(const FakeHSIEventGeneratorModule&) =
+    delete;                                                ///< FakeHSIEventGeneratorModule is not copy-assignable
+  FakeHSIEventGeneratorModule(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-constructible
+  FakeHSIEventGeneratorModule& operator=(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   void get_info(opmonlib::InfoCollector& ci, int level) override;

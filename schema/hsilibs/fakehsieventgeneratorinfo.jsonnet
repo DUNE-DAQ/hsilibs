@@ -16,7 +16,7 @@ local info = {
        s.field("failed_to_send_hsi_events_counter", self.uint8, doc="Number of failed send attempts so far"), 
        s.field("last_generated_timestamp", self.uint8, doc="Timestamp of the last generated HSIEvent"), 
        s.field("last_sent_timestamp", self.uint8, doc="Timestamp of the last sent HSIEvent"), 
-   ], doc="FakeHSIEventGeneratorInfo information")
+   ], doc="FakeHSIEventGeneratorModuleInfo information")
 };
 
 moo.oschema.sort_select(info)

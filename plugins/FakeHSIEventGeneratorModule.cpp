@@ -1,5 +1,5 @@
 /**
- * @file FakeHSIEventGenerator.cpp FakeHSIEventGenerator class
+ * @file FakeHSIEventGeneratorModule.cpp FakeHSIEventGeneratorModule class
  * implementation
  *
  * This is part of the DUNE DAQ Software Suite, copyright 2020.
@@ -7,7 +7,7 @@
  * received with this code.
  */
 
-#include "FakeHSIEventGenerator.hpp"
+#include "FakeHSIEventGeneratorModule.hpp"
 
 #include "hsilibs/fakehsieventgenerator/Nljs.hpp"
 
@@ -15,7 +15,7 @@
 
 #include "appfwk/app/Nljs.hpp"
 #include "dfmessages/HSIEvent.hpp"
-#include "appmodel/FakeHSIEventGenerator.hpp"
+#include "appmodel/FakeHSIEventGeneratorModule.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
 #include "confmodel/DaqModule.hpp"
@@ -31,9 +31,9 @@
 namespace dunedaq {
 namespace hsilibs {
 
-FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
+FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name)
   : HSIEventSender(name)
-  , m_thread(std::bind(&FakeHSIEventGenerator::do_hsi_work, this, std::placeholders::_1))
+  , m_thread(std::bind(&FakeHSIEventGeneratorModule::do_hsi_work, this, std::placeholders::_1))
   , m_timestamp_estimator(nullptr)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
@@ -49,20 +49,20 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_generated_counter(0)
   , m_last_generated_timestamp(0)
 {
-  register_command("conf", &FakeHSIEventGenerator::do_configure);
-  register_command("start", &FakeHSIEventGenerator::do_start);
-  register_command("stop_trigger_sources", &FakeHSIEventGenerator::do_stop);
-  register_command("scrap", &FakeHSIEventGenerator::do_scrap);
-  register_command("change_rate", &FakeHSIEventGenerator::do_change_rate);
+  register_command("conf", &FakeHSIEventGeneratorModule::do_configure);
+  register_command("start", &FakeHSIEventGeneratorModule::do_start);
+  register_command("stop_trigger_sources", &FakeHSIEventGeneratorModule::do_stop);
+  register_command("scrap", &FakeHSIEventGeneratorModule::do_scrap);
+  register_command("change_rate", &FakeHSIEventGeneratorModule::do_change_rate);
 }
 
 void
-FakeHSIEventGenerator::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
-  auto mdal = mcfg->module<appmodel::FakeHSIEventGenerator>(get_name()); // Only need generic DaqModule for output
+  auto mdal = mcfg->module<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
     throw appfwk::CommandFailed(ERS_HERE, "init", get_name(), "Unable to retrieve configuration object");
@@ -80,7 +80,7 @@ FakeHSIEventGenerator::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 }
 
 void
-FakeHSIEventGenerator::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+FakeHSIEventGeneratorModule::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {
   // send counters internal to the module
   fakehsieventgeneratorinfo::Info module_info;
@@ -95,7 +95,7 @@ FakeHSIEventGenerator::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 }
 
 void
-FakeHSIEventGenerator::do_configure(const nlohmann::json& /*obj*/)
+FakeHSIEventGeneratorModule::do_configure(const nlohmann::json& /*obj*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
@@ -126,7 +126,7 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& /*obj*/)
 }
 
 void
-FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
+FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   auto start_params = obj.get<rcif::cmd::StartParams>();
@@ -183,7 +183,7 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 }
 
 void
-FakeHSIEventGenerator::do_change_rate(const nlohmann::json& obj)
+FakeHSIEventGeneratorModule::do_change_rate(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_change_rate() method";
 
@@ -201,7 +201,7 @@ FakeHSIEventGenerator::do_change_rate(const nlohmann::json& obj)
 }
 
 void
-FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
+FakeHSIEventGeneratorModule::do_stop(const nlohmann::json& /*args*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
@@ -222,14 +222,14 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
 }
 
 void
-FakeHSIEventGenerator::do_scrap(const nlohmann::json& /*args*/)
+FakeHSIEventGeneratorModule::do_scrap(const nlohmann::json& /*args*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_scrap() method";
 }
 
 uint32_t // NOLINT(build/unsigned)
-FakeHSIEventGenerator::generate_signal_map()
+FakeHSIEventGeneratorModule::generate_signal_map()
 {
 
   uint32_t signal_map = 0; // NOLINT(build/unsigned)
@@ -254,7 +254,7 @@ FakeHSIEventGenerator::generate_signal_map()
 }
 
 void
-FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
+FakeHSIEventGeneratorModule::do_hsi_work(std::atomic<bool>& running_flag)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering generate_hsievents() method";
 
@@ -355,7 +355,7 @@ FakeHSIEventGenerator::do_hsi_work(std::atomic<bool>& running_flag)
 } // namespace hsilibs
 } // namespace dunedaq
 
-DEFINE_DUNE_DAQ_MODULE(dunedaq::hsilibs::FakeHSIEventGenerator)
+DEFINE_DUNE_DAQ_MODULE(dunedaq::hsilibs::FakeHSIEventGeneratorModule)
 
 // Local Variables:
 // c-basic-offset: 2
