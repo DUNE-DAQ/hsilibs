@@ -18,7 +18,7 @@ namespace dunedaq {
 namespace hsilibs {
 
 void 
-HSIFrameProcessor::conf(const appmodel::ReadoutModule* conf)
+HSIFrameProcessor::conf(const appmodel::DataHandlerModule* conf)
 {
   // m_tasklist.push_back( std::bind(&HSIFrameProcessor::frame_error_check, this, std::placeholders::_1) );
   inherited::conf(conf);

@@ -1,5 +1,5 @@
 /**
- * @file HSIDataLinkHandler.hpp Module implementing 
+ * @file HSIDataHandlerModule.hpp Module implementing 
  * DataLinkHandlerConcept for HSI.
  *
  * This is part of the DUNE DAQ , copyright 2020.
@@ -22,19 +22,19 @@
 namespace dunedaq {
 namespace hsilibs {
 
-class HSIDataLinkHandler : public dunedaq::appfwk::DAQModule
+class HSIDataHandlerModule : public dunedaq::appfwk::DAQModule
 {
 public:
   /**
-   * @brief HSIDataLinkHandler Constructor
-   * @param name Instance name for this HSIDataLinkHandler instance
+   * @brief HSIDataHandlerModule Constructor
+   * @param name Instance name for this HSIDataHandlerModule instance
    */
-  explicit HSIDataLinkHandler(const std::string& name);
+  explicit HSIDataHandlerModule(const std::string& name);
 
-  HSIDataLinkHandler(const HSIDataLinkHandler&) = delete;            ///< HSIDataLinkHandler is not copy-constructible
-  HSIDataLinkHandler& operator=(const HSIDataLinkHandler&) = delete; ///< HSIDataLinkHandler is not copy-assignable
-  HSIDataLinkHandler(HSIDataLinkHandler&&) = delete;                 ///< HSIDataLinkHandler is not move-constructible
-  HSIDataLinkHandler& operator=(HSIDataLinkHandler&&) = delete;      ///< HSIDataLinkHandler is not move-assignable
+  HSIDataHandlerModule(const HSIDataHandlerModule&) = delete;            ///< HSIDataHandlerModule is not copy-constructible
+  HSIDataHandlerModule& operator=(const HSIDataHandlerModule&) = delete; ///< HSIDataHandlerModule is not copy-assignable
+  HSIDataHandlerModule(HSIDataHandlerModule&&) = delete;                 ///< HSIDataHandlerModule is not move-constructible
+  HSIDataHandlerModule& operator=(HSIDataHandlerModule&&) = delete;      ///< HSIDataHandlerModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   void get_info(opmonlib::InfoCollector& ci, int level) override;

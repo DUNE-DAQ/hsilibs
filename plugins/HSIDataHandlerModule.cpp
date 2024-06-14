@@ -1,12 +1,12 @@
 /**
- * @file HSIDataLinkHandler.cpp HSIDataLinkHandler class implementation
+ * @file HSIDataHandlerModule.cpp HSIDataHandlerModule class implementation
  *
  * This is part of the DUNE DAQ , copyright 2020.
  * Licensing/copyright details are in the COPYING file that you should have
  * received with this code.
  */
 
-#include "HSIDataLinkHandler.hpp"
+#include "HSIDataHandlerModule.hpp"
 
 #include "hsilibs/Types.hpp"
 #include "HSIFrameProcessor.hpp"
@@ -31,21 +31,21 @@ using namespace dunedaq::readoutlibs::logging;
 namespace dunedaq {
 namespace hsilibs {
 
-HSIDataLinkHandler::HSIDataLinkHandler(const std::string& name)
+HSIDataHandlerModule::HSIDataHandlerModule(const std::string& name)
   : DAQModule(name)
   , m_configured(false)
   , m_readout_impl(nullptr)
   , m_run_marker{ false }
 {
-  register_command("conf", &HSIDataLinkHandler::do_conf);
-  register_command("scrap", &HSIDataLinkHandler::do_scrap);
-  register_command("start", &HSIDataLinkHandler::do_start);
-  register_command("stop_trigger_sources", &HSIDataLinkHandler::do_stop);
-  register_command("record", &HSIDataLinkHandler::do_record);
+  register_command("conf", &HSIDataHandlerModule::do_conf);
+  register_command("scrap", &HSIDataHandlerModule::do_scrap);
+  register_command("start", &HSIDataHandlerModule::do_start);
+  register_command("stop_trigger_sources", &HSIDataHandlerModule::do_stop);
+  register_command("record", &HSIDataHandlerModule::do_record);
 }
 
 void
-HSIDataLinkHandler::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
@@ -57,23 +57,23 @@ HSIDataLinkHandler::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
                     rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
                     rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
                     hsilibs::HSIFrameProcessor>>(m_run_marker);
-  m_readout_impl->init(mcfg->module<appmodel::ReadoutModule>(get_name()));
+  m_readout_impl->init(mcfg->module<appmodel::DataHandlerModule>(get_name()));
   if (m_readout_impl == nullptr)
   {
-    TLOG() << get_name() << "Initialize HSIDataLinkHandler FAILED! ";
+    TLOG() << get_name() << "Initialize HSIDataHandlerModule FAILED! ";
     throw readoutlibs::FailedReadoutInitialization(ERS_HERE, get_name(), "OKS Config"); // 4 json ident
   }
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
 void
-HSIDataLinkHandler::get_info(opmonlib::InfoCollector& ci, int level)
+HSIDataHandlerModule::get_info(opmonlib::InfoCollector& ci, int level)
 {
   m_readout_impl->get_info(ci, level);
 }
 
 void
-HSIDataLinkHandler::do_conf(const data_t& args)
+HSIDataHandlerModule::do_conf(const data_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_conf() method";
   m_readout_impl->conf(args);
@@ -82,7 +82,7 @@ HSIDataLinkHandler::do_conf(const data_t& args)
 }
 
 void
-HSIDataLinkHandler::do_scrap(const data_t& args)
+HSIDataHandlerModule::do_scrap(const data_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
   m_readout_impl->scrap(args);
@@ -90,7 +90,7 @@ HSIDataLinkHandler::do_scrap(const data_t& args)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_scrap() method";
 }
 void
-HSIDataLinkHandler::do_start(const data_t& args)
+HSIDataHandlerModule::do_start(const data_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   m_run_marker.store(true);
@@ -104,7 +104,7 @@ HSIDataLinkHandler::do_start(const data_t& args)
 }
 
 void
-HSIDataLinkHandler::do_stop(const data_t& args)
+HSIDataHandlerModule::do_stop(const data_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_run_marker.store(false);
@@ -114,7 +114,7 @@ HSIDataLinkHandler::do_stop(const data_t& args)
 }
 
 void
-HSIDataLinkHandler::do_record(const data_t& args)
+HSIDataHandlerModule::do_record(const data_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_issue_recording() method";
   m_readout_impl->record(args);
@@ -124,4 +124,4 @@ HSIDataLinkHandler::do_record(const data_t& args)
 } // namespace hsilibs
 } // namespace dunedaq
 
-DEFINE_DUNE_DAQ_MODULE(dunedaq::hsilibs::HSIDataLinkHandler)
+DEFINE_DUNE_DAQ_MODULE(dunedaq::hsilibs::HSIDataHandlerModule)
