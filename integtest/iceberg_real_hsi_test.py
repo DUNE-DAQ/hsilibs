@@ -84,6 +84,12 @@ conf_dict["readout"]["use_fake_data_producers"] = True
 conf_dict["trigger"]["ttcm_input_map"] = [{'signal': 128, 'tc_type_name': 'kTLUFakeTrigger',
                                            'time_before': 1000, 'time_after': 1000}]
 
+conf_dict["readout"]["data_files"] = []
+datafile_conf = {}
+datafile_conf["data_file"] = "asset://?checksum=e96fd6efd3f98a9a3bfaba32975b476e" # WIBEth
+datafile_conf["detector_id"] = 3
+conf_dict["readout"]["data_files"].append(datafile_conf)
+
 conf_dict["dataflow"]["apps"] = [] # Remove preconfigured dataflow0 app
 for df_app in range(number_of_dataflow_apps):
     dfapp_conf = {}
