@@ -11,11 +11,11 @@
 #include "hsilibs/Types.hpp"
 #include "HSIFrameProcessor.hpp"
 
-#include "readoutlibs/concepts/ReadoutConcept.hpp"
-#include "readoutlibs/models/ReadoutModel.hpp"
-#include "readoutlibs/models/BinarySearchQueueModel.hpp"
-#include "readoutlibs/models/DefaultRequestHandlerModel.hpp"
-#include "readoutlibs/ReadoutLogging.hpp"
+#include "datahandlinglibs/concepts/DataHandlingConcept.hpp"
+#include "datahandlinglibs/models/DataHandlingModel.hpp"
+#include "datahandlinglibs/models/BinarySearchQueueModel.hpp"
+#include "datahandlinglibs/models/DefaultRequestHandlerModel.hpp"
+#include "datahandlinglibs/ReadoutLogging.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
 #include "logging/Logging.hpp"
@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-using namespace dunedaq::readoutlibs::logging;
+using namespace dunedaq::datahandlinglibs::logging;
 
 namespace dunedaq {
 namespace hsilibs {
@@ -50,9 +50,9 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   
-  namespace rol = dunedaq::readoutlibs;
+  namespace rol = dunedaq::datahandlinglibs;
 
-  m_readout_impl = std::make_unique<rol::ReadoutModel<
+  m_readout_impl = std::make_unique<rol::DataHandlingModel<
                     hsilibs::HSI_FRAME_STRUCT,
                     rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
                     rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
@@ -61,7 +61,7 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
   if (m_readout_impl == nullptr)
   {
     TLOG() << get_name() << "Initialize HSIDataHandlerModule FAILED! ";
-    throw readoutlibs::FailedReadoutInitialization(ERS_HERE, get_name(), "OKS Config"); // 4 json ident
+    throw datahandlinglibs::FailedReadoutInitialization(ERS_HERE, get_name(), "OKS Config"); // 4 json ident
   }
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }

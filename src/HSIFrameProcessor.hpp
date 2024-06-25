@@ -8,13 +8,13 @@
 #ifndef HSILIBS_SRC_HSI_HSIFRAMEPROCESSOR_HPP_
 #define HSILIBS_SRC_HSI_HSIFRAMEPROCESSOR_HPP_
 
-#include "readoutlibs/ReadoutIssues.hpp"
-#include "readoutlibs/models/TaskRawDataProcessorModel.hpp"
+#include "datahandlinglibs/DataHandlingIssues.hpp"
+#include "datahandlinglibs/models/TaskRawDataProcessorModel.hpp"
 
 #include "hsilibs/Types.hpp"
 #include "logging/Logging.hpp"
-#include "readoutlibs/FrameErrorRegistry.hpp"
-#include "readoutlibs/ReadoutLogging.hpp"
+#include "datahandlinglibs/FrameErrorRegistry.hpp"
+#include "datahandlinglibs/ReadoutLogging.hpp"
 
 #include <atomic>
 #include <functional>
@@ -24,16 +24,16 @@
 namespace dunedaq {
 namespace hsilibs {
 
-class HSIFrameProcessor : public readoutlibs::TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>
+class HSIFrameProcessor : public datahandlinglibs::TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>
 {
 
 public:
-  using inherited = readoutlibs::TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>;
+  using inherited = datahandlinglibs::TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>;
   using frameptr = hsilibs::HSI_FRAME_STRUCT*;
   using timestamp_t = std::uint64_t; // NOLINT(build/unsigned)
 
   // Constructor
-  explicit HSIFrameProcessor(std::unique_ptr<readoutlibs::FrameErrorRegistry>& error_registry)
+  explicit HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry)
     : TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>(error_registry)
   {}
 
