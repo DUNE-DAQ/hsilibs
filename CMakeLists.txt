@@ -14,7 +14,7 @@ find_package(appfwk REQUIRED)
 find_package(timing REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(dfmessages REQUIRED)
-find_package(readoutlibs REQUIRED)
+find_package(datahandlinglibs REQUIRED)
 find_package(timinglibs REQUIRED)
 find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
@@ -50,7 +50,7 @@ set(HSILIBS_DEPENDENCIES
   opmonlib::opmonlib
   nlohmann_json::nlohmann_json
   dfmessages::dfmessages
-  readoutlibs::readoutlibs
+  datahandlinglibs::datahandlinglibs
   daqdataformats::daqdataformats
   detdataformats::detdataformats
 )
@@ -59,7 +59,7 @@ set(HSILIBS_DEPENDENCIES
 daq_add_library(HSIEventSender.cpp HSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIBS_DEPENDENCIES})
 
 ##############################################################################
-daq_add_plugin(HSIDataHandlerModule duneDAQModule LINK_LIBRARIES hsilibs readoutlibs::readoutlibs ${BOOST_LIBS})
+daq_add_plugin(HSIDataHandlerModule duneDAQModule LINK_LIBRARIES hsilibs datahandlinglibs::datahandlinglibs ${BOOST_LIBS})
 daq_add_plugin(FakeHSIEventGeneratorModule duneDAQModule LINK_LIBRARIES hsilibs timing::timing utilities::utilities)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs::timinglibs hsilibs)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs timing::timing timinglibs::timinglibs)

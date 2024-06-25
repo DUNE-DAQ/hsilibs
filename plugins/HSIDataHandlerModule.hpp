@@ -11,7 +11,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
-#include "readoutlibs/concepts/ReadoutConcept.hpp"
+#include "datahandlinglibs/concepts/DataHandlingConcept.hpp"
 
 #include <chrono>
 #include <memory>
@@ -52,7 +52,7 @@ private:
   daqdataformats::run_number_t m_run_number;
 
   // Internal
-  std::unique_ptr<readoutlibs::ReadoutConcept> m_readout_impl;
+  std::unique_ptr<datahandlinglibs::DataHandlingConcept> m_readout_impl;
 
   // Threading
   std::atomic<bool> m_run_marker;
