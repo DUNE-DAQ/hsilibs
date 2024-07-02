@@ -81,7 +81,7 @@ conf_dict["boot"]["connectivity_service_port"] = conn_svc_port
 conf_dict["detector"]["clock_speed_hz"] = 62500000
 conf_dict["readout"]["latency_buffer_size"] = 200000
 conf_dict["readout"]["use_fake_data_producers"] = True
-conf_dict["trigger"]["ttcm_input_map"] = [{'signal': 128, 'tc_type_name': 'kTLUFakeTrigger',
+conf_dict["trigger"]["ttcm_input_map"] = [{'signal': 128, 'tc_type_name': 'kDTSPulser',
                                            'time_before': 1000, 'time_after': 1000}]
 
 conf_dict["readout"]["data_files"] = []
