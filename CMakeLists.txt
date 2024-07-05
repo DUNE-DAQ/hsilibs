@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(hsilibs VERSION 4.1.0)
+project(hsilibs VERSION 4.2.0)
 
 find_package(daq-cmake REQUIRED)
 
