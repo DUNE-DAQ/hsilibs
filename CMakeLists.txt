@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(hsilibs VERSION 4.2.0)
+project(hsilibs VERSION 4.3.0)
 
 find_package(daq-cmake REQUIRED)
 
@@ -61,8 +61,8 @@ daq_add_library(HSIEventSender.cpp HSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIB
 ##############################################################################
 daq_add_plugin(HSIDataHandlerModule duneDAQModule LINK_LIBRARIES hsilibs datahandlinglibs::datahandlinglibs ${BOOST_LIBS})
 daq_add_plugin(FakeHSIEventGeneratorModule duneDAQModule LINK_LIBRARIES hsilibs timing::timing utilities::utilities)
-daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs::timinglibs hsilibs)
-daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs timing::timing timinglibs::timinglibs)
+#daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs::timinglibs hsilibs)
+#daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs timing::timing timinglibs::timinglibs)
 
 ##############################################################################
 
