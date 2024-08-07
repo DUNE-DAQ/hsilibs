@@ -37,7 +37,7 @@ public:
   HSIDataHandlerModule& operator=(HSIDataHandlerModule&&) = delete;      ///< HSIDataHandlerModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands

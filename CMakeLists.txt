@@ -33,12 +33,6 @@ daq_codegen(
 			 hsireadout.jsonnet
 			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
-daq_codegen( 
-       fakehsieventgeneratorinfo.jsonnet 
-			 hsicontrollerinfo.jsonnet 
-			 hsireadoutinfo.jsonnet 
-			 DEP_PKGS opmonlib TEMPLATES opmonlib/InfoStructs.hpp.j2 opmonlib/InfoNljs.hpp.j2 )
-
 ##############################################################################
 # Dependency sets
 set(HSILIBS_DEPENDENCIES 

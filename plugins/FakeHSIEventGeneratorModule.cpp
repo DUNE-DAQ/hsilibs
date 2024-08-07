@@ -79,20 +79,20 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ModuleConfiguration> m
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
-void
-FakeHSIEventGeneratorModule::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-{
-  // send counters internal to the module
-  fakehsieventgeneratorinfo::Info module_info;
+// void
+// FakeHSIEventGeneratorModule::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// {
+//   // send counters internal to the module
+//   fakehsieventgeneratorinfo::Info module_info;
 
-  module_info.generated_hsi_events_counter = m_generated_counter.load();
-  module_info.sent_hsi_events_counter = m_sent_counter.load();
-  module_info.failed_to_send_hsi_events_counter = m_failed_to_send_counter.load();
-  module_info.last_generated_timestamp = m_last_generated_timestamp.load();
-  module_info.last_sent_timestamp = m_last_sent_timestamp.load();
+//   module_info.generated_hsi_events_counter = m_generated_counter.load();
+//   module_info.sent_hsi_events_counter = m_sent_counter.load();
+//   module_info.failed_to_send_hsi_events_counter = m_failed_to_send_counter.load();
+//   module_info.last_generated_timestamp = m_last_generated_timestamp.load();
+//   module_info.last_sent_timestamp = m_last_sent_timestamp.load();
 
-  ci.add(module_info);
-}
+//   ci.add(module_info);
+// }
 
 void
 FakeHSIEventGeneratorModule::do_configure(const nlohmann::json& /*obj*/)

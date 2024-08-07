@@ -66,11 +66,11 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
-void
-HSIDataHandlerModule::get_info(opmonlib::InfoCollector& ci, int level)
-{
-  m_readout_impl->get_info(ci, level);
-}
+// void
+// HSIDataHandlerModule::get_info(opmonlib::InfoCollector& ci, int level)
+// {
+//   m_readout_impl->get_info(ci, level);
+// }
 
 void
 HSIDataHandlerModule::do_conf(const data_t& args)
