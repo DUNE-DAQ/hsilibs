@@ -1,4 +1,4 @@
-/**
+/*
  * @file Types.hpp
  *
  *  Contains declaration of HSI_FRAME_STRUCT.
@@ -42,7 +42,7 @@ public:
   // comparable based on start timestamp
   bool operator<(const FrameType& other) const
   {
-    return this->get_first_timestamp() < other.get_first_timestamp() ? true : false;
+    return this->get_timestamp() < other.get_timestamp() ? true : false;
   }
   
   uint64_t get_timestamp() const // NOLINT(build/unsigned)
@@ -50,12 +50,7 @@ public:
     return frame.get_timestamp(); // NOLINT
   }
 
-  uint64_t get_first_timestamp() const // NOLINT(build/unsigned)
-  {
-    return frame.get_timestamp(); // NOLINT
-  }
-
-  void set_first_timestamp(uint64_t ts) // NOLINT(build/unsigned)
+  void set_timestamp(uint64_t ts) // NOLINT(build/unsigned)
   {
     frame.set_timestamp(ts);
   }
