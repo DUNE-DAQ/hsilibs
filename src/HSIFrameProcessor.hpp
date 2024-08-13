@@ -39,16 +39,21 @@ public:
 
   // Override config for pipeline setup
   void conf(const appmodel::DataHandlerModule* conf) override;
-  
+
 protected:
+
+  /**
+   * Pipeline Stage 1.: Check proper timestamp increments in DAPHNE frame
+   * */
+  void timestamp_check(frameptr /*fp*/);
+
   /**
    * Pipeline Stage 2.: Check for error
    * */
   void frame_error_check(frameptr /*fp*/);
 
   // Internals
-  bool m_problem_reported = false;
-  std::atomic<int> m_ts_error_ctr{ 0 };
+  timestamp_t m_previous_ts;
 
 private:
 };
