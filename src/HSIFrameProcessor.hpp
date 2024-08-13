@@ -33,9 +33,7 @@ public:
   using timestamp_t = std::uint64_t; // NOLINT(build/unsigned)
 
   // Constructor
-  explicit HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry)
-    : TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>(error_registry)
-  {}
+  explicit HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry);
 
   // Override config for pipeline setup
   void conf(const appmodel::DataHandlerModule* conf) override;
