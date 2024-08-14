@@ -12,8 +12,6 @@
 #include "utilities/TimestampEstimator.hpp"
 #include "hsilibs/fakehsieventgenerator/Nljs.hpp"
 #include "hsilibs/fakehsieventgenerator/Structs.hpp"
-#include "hsilibs/fakehsieventgeneratorinfo/InfoNljs.hpp"
-#include "hsilibs/fakehsieventgeneratorinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
@@ -53,7 +51,7 @@ public:
   FakeHSIEventGeneratorModule& operator=(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
