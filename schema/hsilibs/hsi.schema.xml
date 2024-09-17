@@ -101,6 +101,12 @@
 <class name="HSIEventSender">
     <superclass name="DaqModule"/>
 </class>
+<class name="FakeHSIGenerator">
+    <superclass name="HSIEventSender"/>
+</class>
+<class name="CTBModule">
+    <superclass name="HSIEventSender"/>
+</class>
 
 <class name="HSIReadout">
     <superclass name="HSIEventSender"/>
