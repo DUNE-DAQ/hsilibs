@@ -89,16 +89,13 @@
 
 <class name="HSIController">
     <superclass name="TimingController"/>
-    <attribute name="device" type="string" init-value="Unknown"/>
-    <attribute name="clock_frequency" type="u64" init-value="62500000"/>
     <attribute name="trigger_rate" type="double" init-value="1"/>
-    <attribute name="address" type="string" init-value="tcp://127.0.0.1:12344"/>
-    <attribute name="partition" type="string" init-value="hsi_readout_test"/>
+    <attribute name="address" type="u32" init-value="tcp://127.0.0.1:12344"/>
     <attribute name="control_hardware_io" description="control flag for controlling hardware io" type="bool" init-value="false"/>
-    <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="Unknown"/>
-    <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="Unknown"/>
-    <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="Unknown"/>
-    <attribute name="data_source" description="Source of data for HSI triggering" type="string" init-value="Unknown"/>
+    <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="1"/>
+    <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="1"/>
+    <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="1"/>
+    <attribute name="data_source" description="Source of data for HSI triggering" type="u32" init-value="1"/>
 </class>
 
 <class name="HSIEventSender">
