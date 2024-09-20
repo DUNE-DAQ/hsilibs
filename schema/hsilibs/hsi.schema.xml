@@ -90,7 +90,7 @@
 <class name="HSIController">
     <superclass name="TimingController"/>
     <attribute name="trigger_rate" type="double" init-value="1"/>
-    <attribute name="address" type="u32" init-value="tcp://127.0.0.1:12344"/>
+    <attribute name="address" type="u32" init-value="12344"/>
     <attribute name="control_hardware_io" description="control flag for controlling hardware io" type="bool" init-value="false"/>
     <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="1"/>
     <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="1"/>
