@@ -110,6 +110,11 @@
 
 <class name="HSIReadout">
     <superclass name="HSIEventSender"/>
+</class>
+
+<class name="HSIReadoutConf">
+    <attribute name="connections_file" description="device connections file" type="string" init-value="${TIMING_SHARE}/config/etc/connections.xml"/>
+    <attribute name="uhal_log_level" description="Log level for uhal" type="enum" range="fatal,error,warning,notice,info,debug" init-value="notice"/>
     <attribute name="readout_period" description="Hardware device poll period [us]" type="u64" init-value="1000"/>
     <attribute name="hsi_device_name" type="string" init-value="Unknown"/>
 </class>
