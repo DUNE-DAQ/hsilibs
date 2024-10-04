@@ -5,6 +5,7 @@ find_package(daq-cmake REQUIRED)
 
 daq_setup_environment()
 
+find_package(confmodel REQUIRED)
 find_package(ers REQUIRED)     
 find_package(logging REQUIRED)
 find_package(pybind11 REQUIRED)
@@ -24,14 +25,14 @@ find_package(daqdataformats REQUIRED)
 find_package(detdataformats REQUIRED)
 find_package(utilities REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework iostreams REQUIRED)
+find_package(okssystem REQUIRED)
+find_package(oks REQUIRED)
+find_package(oksdalgen REQUIRED)
+find_package(conffwk REQUIRED)
+
+daq_oks_codegen(hsi.schema.xml NAMESPACE dunedaq::hsilibs::dal DALDIR dal DEP_PKGS timinglibs confmodel)
 
 set(BOOST_LIBS Boost::iostreams ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_LIBRARIES})
-
-daq_codegen( 
-			 fakehsieventgenerator.jsonnet
-			 hsicontroller.jsonnet
-			 hsireadout.jsonnet
-			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
 ##############################################################################
 # Dependency sets
@@ -40,13 +41,13 @@ set(HSILIBS_DEPENDENCIES
   iomanager::iomanager
   ers::ers
   logging::logging
-  iomanager::iomanager
   opmonlib::opmonlib
   nlohmann_json::nlohmann_json
   dfmessages::dfmessages
   datahandlinglibs::datahandlinglibs
   daqdataformats::daqdataformats
   detdataformats::detdataformats
+  timinglibs::timinglibs
 )
 
 ##############################################################################
@@ -55,7 +56,7 @@ daq_add_library(HSIEventSender.cpp HSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIB
 ##############################################################################
 daq_add_plugin(HSIDataHandlerModule duneDAQModule LINK_LIBRARIES hsilibs datahandlinglibs::datahandlinglibs ${BOOST_LIBS})
 daq_add_plugin(FakeHSIEventGeneratorModule duneDAQModule LINK_LIBRARIES hsilibs timing::timing utilities::utilities)
-daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs::timinglibs hsilibs)
+#daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs::timinglibs hsilibs)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs timing::timing timinglibs::timinglibs)
 
 ##############################################################################
