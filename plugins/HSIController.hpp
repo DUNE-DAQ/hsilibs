@@ -12,11 +12,10 @@
 #ifndef HSILIBS_PLUGINS_HSICONTROLLER_HPP_
 #define HSILIBS_PLUGINS_HSICONTROLLER_HPP_
 
-#include "timinglibs/dal/HSIController.hpp"
-#include "hsilibs/hsicontrollerinfo/InfoNljs.hpp"
-#include "hsilibs/hsicontrollerinfo/InfoStructs.hpp"
+#include "hsilibs/dal/HSIControllerConf.hpp"
+#include "hsilibs/dal/HSIController.hpp"
 
-#include "timinglibs/TimingController.hpp"
+#include "timinglibs/TimingEndpointControllerBase.hpp"
 #include "timinglibs/TimingHardwareInterface.hpp"
 
 #include "appfwk/DAQModule.hpp"
@@ -35,7 +34,7 @@ namespace hsilibs {
  * @brief HSIController is a DAQModule implementation that
  * provides that provides a control interface for a HSI endpoint.
  */
-class HSIController : public dunedaq::timinglibs::TimingController, dunedaq::timinglibs::TimingHardwareInterface
+class HSIController : public dunedaq::timinglibs::TimingEndpointControllerBase, dunedaq::timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -49,8 +48,9 @@ public:
   HSIController(HSIController&&) = delete;                 ///< HSIController is not move-constructible
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
 
-private:
-  const timinglibs::dal::HSIController* m_hsi_configuration;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+protected:
+  const hsilibs::dal::HSIControllerConf* m_hsi_configuration;
 
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   bool m_control_hardware_io;
@@ -66,22 +66,22 @@ private:
   void do_change_rate(const nlohmann::json& data);
   void send_configure_hardware_commands(const nlohmann::json& data) override;
 
-  // timinglibs hsi commands
-  void do_hsi_io_reset(const nlohmann::json& data);
-  void do_hsi_endpoint_enable(const nlohmann::json& data);
-  void do_hsi_endpoint_disable(const nlohmann::json& data);
-  void do_hsi_endpoint_reset(const nlohmann::json& data);
+  // overriding these to talk directly to hw
+  void do_io_reset(const nlohmann::json& data) override;
+  void do_endpoint_enable(const nlohmann::json& data) override;
+  void do_endpoint_disable(const nlohmann::json& data) override;
+  void do_endpoint_reset(const nlohmann::json& data) override;
 
+  // hsi commands
   void do_hsi_reset(const nlohmann::json&);
-  void do_hsi_configure(const nlohmann::json& data);
-  void do_hsi_configure_trigger_rate_override(nlohmann::json data, double trigger_rate_override);
+  void do_hsi_configure(double random_rate);
+  void do_hsi_configure();
   void do_hsi_start(const nlohmann::json&);
   void do_hsi_stop(const nlohmann::json&);
 
   void do_hsi_print_status(const nlohmann::json&);
 
-  // pass op mon info
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  // op mon info
   void process_device_info(nlohmann::json info) override;
 
   std::atomic<uint> m_endpoint_state;

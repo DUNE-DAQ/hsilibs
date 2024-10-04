@@ -10,8 +10,6 @@
 #include "hsilibs/HSIEventSender.hpp"
 
 #include "utilities/TimestampEstimator.hpp"
-#include "hsilibs/fakehsieventgenerator/Nljs.hpp"
-#include "hsilibs/fakehsieventgenerator/Structs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"

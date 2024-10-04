@@ -9,8 +9,6 @@
 
 #include "FakeHSIEventGeneratorModule.hpp"
 
-#include "hsilibs/fakehsieventgenerator/Nljs.hpp"
-
 #include "utilities/Issues.hpp"
 
 #include "appfwk/app/Nljs.hpp"

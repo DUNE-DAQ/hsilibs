@@ -83,19 +83,23 @@
 <info name="" type="" num-of-items="11" oks-format="schema" oks-version="862f2957270" created-by="dianaAntic" created-on="mu2edaq13.fnal.gov" creation-time="20230123T223700" last-modified-by="eflumerf" last-modified-on="ironvirt9.mshome.net" last-modification-time="20240325T173708"/>
 
 <include>
-    <file path="schema/confmodel/dunedaq.schema.xml"/>
-    <file path="schema/timinglibs/timing.schema.xml" />
+    <file path="schema/timinglibs/timing.schema.xml"/>
 </include>
 
-<class name="HSIController">
-    <superclass name="TimingController"/>
+<class name="HSIControllerConf">
+    <superclass name="TimingEndpointControllerConf"/>
+    <superclass name="TimingHardwareInterfaceConf"/>
     <attribute name="trigger_rate" type="double" init-value="1"/>
-    <attribute name="address" type="u32" init-value="12344"/>
     <attribute name="control_hardware_io" description="control flag for controlling hardware io" type="bool" init-value="false"/>
     <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="1"/>
-    <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="1"/>
-    <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="1"/>
-    <attribute name="data_source" description="Source of data for HSI triggering" type="u32" init-value="1"/>
+    <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="0"/>
+    <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="0"/>
+    <attribute name="data_source" description="Source of data for HSI triggering" type="u32" init-value="0"/>
+</class>
+
+<class name="HSIController">
+    <superclass name="TimingEndpointControllerBase"/>
+    <superclass name="TimingHardwareInterface"/>
 </class>
 
 </oks-schema>
