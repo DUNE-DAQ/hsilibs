@@ -72,7 +72,7 @@ HSIReadout::do_configure(const nlohmann::json& /*data*/)
 
   m_readout_period = m_params->get_readout_period();
 
-  configure_uhal(m_params->get_uhal_config()); // configure hw ipbus connection
+  configure_uhal(m_params->get_uhal_log_level(), m_params->get_connections_file()); // configure hw ipbus connection
 
   if (m_params->get_hsi_device_name().empty())
   {
