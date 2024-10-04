@@ -17,7 +17,8 @@
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
-
+#include "confmodel/DaqModule.hpp"
+#include "confmodel/Connection.hpp"
 #include <chrono>
 #include <cstdlib>
 #include <memory>
@@ -51,14 +52,21 @@ HSIReadout::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
-  m_params = mcfg->module<timinglibs::dal::HSIReadout>(get_name());
+  auto mdal = mcfg->module<appmodel::HSIReadout>(get_name());
 
-  m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>("get output connection uid from config");
+  for (auto con : mdal->get_outputs()) {
+    if (con->get_data_type() == datatype_to_string<HSI_FRAME_STRUCT>()) {
+
+      m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(con->UID());
+  }
+  }
+  m_params = mdal->get_configuration();
+
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
 void
-HSIReadout::do_configure(const nlohmann::json& data)
+HSIReadout::do_configure(const nlohmann::json& /*data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
@@ -104,7 +112,7 @@ HSIReadout::do_stop(const nlohmann::json& /*data*/)
 }
 
 void
-HSIReadout::do_scrap(const nlohmann::json& data)
+HSIReadout::do_scrap(const nlohmann::json& /*data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
   scrap_uhal();
@@ -293,23 +301,23 @@ HSIReadout::read_average_buffer_counts()
   }
 }
 
-void
-HSIReadout::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-{
-  // send counters internal to the module
-  hsireadoutinfo::Info module_info;
+// void
+// HSIReadout::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// {
+//   // send counters internal to the module
+//   hsireadoutinfo::Info module_info;
 
-  module_info.readout_hsi_events_counter = m_readout_counter.load();
-  module_info.sent_hsi_events_counter = m_sent_counter.load();
-  module_info.failed_to_send_hsi_events_counter = m_failed_to_send_counter.load();
+//   module_info.readout_hsi_events_counter = m_readout_counter.load();
+//   module_info.sent_hsi_events_counter = m_sent_counter.load();
+//   module_info.failed_to_send_hsi_events_counter = m_failed_to_send_counter.load();
 
-  module_info.last_readout_timestamp = m_last_readout_timestamp.load();
-  module_info.last_sent_timestamp = m_last_sent_timestamp.load();
+//   module_info.last_readout_timestamp = m_last_readout_timestamp.load();
+//   module_info.last_sent_timestamp = m_last_sent_timestamp.load();
 
-  module_info.average_buffer_occupancy = read_average_buffer_counts();
+//   module_info.average_buffer_occupancy = read_average_buffer_counts();
 
-  ci.add(module_info);
-}
+//   ci.add(module_info);
+// }
 
 } // namespace hsilibs
 } // namespace dunedaq
