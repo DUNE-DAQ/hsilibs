@@ -13,7 +13,6 @@
 
 #include "utilities/Issues.hpp"
 
-#include "appfwk/app/Nljs.hpp"
 #include "dfmessages/HSIEvent.hpp"
 #include "appmodel/FakeHSIEventGeneratorModule.hpp"
 #include "iomanager/IOManager.hpp"
