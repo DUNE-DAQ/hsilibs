@@ -2,9 +2,6 @@ local moo = import "moo.jsonnet";
 local ns = "dunedaq.hsilibs.hsicontroller";
 local s = moo.oschema.schema(ns);
 
-local s_app = import "appfwk/app.jsonnet";
-local app = moo.oschema.hier(s_app).dunedaq.appfwk.app;
-
 local cs = {
 	
     str : s.string("Str", doc="A string field"),
@@ -53,4 +50,4 @@ local cs = {
     ], doc="Structure for payload of hsi configure commands"),
 };
 
-s_app + moo.oschema.sort_select(cs)
+moo.oschema.sort_select(cs)
