@@ -17,6 +17,8 @@
 #include "logging/Logging.hpp"
 #include "confmodel/DaqModule.hpp"
 #include "confmodel/Connection.hpp"
+#include "confmodel/Session.hpp"
+#include "confmodel/DetectorConfig.hpp"
 #include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
@@ -34,7 +36,7 @@ FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name
   , m_timestamp_estimator(nullptr)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
-  , m_clock_frequency(50e6)
+  , m_clock_frequency(62500000)
   , m_trigger_rate(1)        // Hz
   , m_active_trigger_rate(1) // Hz
   , m_event_period(1e6)      // us
@@ -58,6 +60,7 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ModuleConfiguration> m
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
+  m_clock_frequency = mcfg->configuration_manager()->session()->get_detector_configuration()->get_clock_speed_hz();
   auto mdal = mcfg->module<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
@@ -95,7 +98,6 @@ FakeHSIEventGeneratorModule::do_configure(const nlohmann::json& /*obj*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
-  m_clock_frequency = m_params->get_clock_frequency();
   if (m_params->get_trigger_rate() > 0) {
     m_trigger_rate.store(m_params->get_trigger_rate());
     m_active_trigger_rate.store(m_trigger_rate.load());
