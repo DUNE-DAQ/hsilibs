@@ -57,7 +57,6 @@ private:
   void do_start(const nlohmann::json& obj) override;
   void do_stop(const nlohmann::json& obj) override;
   void do_scrap(const nlohmann::json& obj) override;
-  void do_change_rate(const nlohmann::json& obj);
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
   

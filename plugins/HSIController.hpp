@@ -63,7 +63,6 @@ protected:
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
   void do_scrap(const nlohmann::json& data) override;
-  void do_change_rate(const nlohmann::json& data);
   void send_configure_hardware_commands(const nlohmann::json& data) override;
 
   // overriding these to talk directly to hw

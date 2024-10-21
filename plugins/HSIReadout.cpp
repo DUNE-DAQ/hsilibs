@@ -9,12 +9,9 @@
 
 #include "HSIReadout.hpp"
 
-#include "hsilibs/hsireadout/Nljs.hpp"
-
 #include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
-#include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
 #include "confmodel/DaqModule.hpp"

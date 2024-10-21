@@ -18,10 +18,8 @@
 #include "timing/timingfirmwareinfo/Nljs.hpp"
 #include "timing/timingfirmwareinfo/Structs.hpp"
 
-#include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
-#include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -46,7 +44,6 @@ HSIController::HSIController(const std::string& name)
   register_command("conf", &HSIController::do_configure);
   register_command("start", &HSIController::do_start);
   register_command("stop_trigger_sources", &HSIController::do_stop);
-  register_command("change_rate", &HSIController::do_change_rate);
   register_command("scrap", &HSIController::do_scrap);
   
   // hsi hardware commands
@@ -94,22 +91,6 @@ void
 HSIController::do_start(const nlohmann::json& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
-
-  do_hsi_reset(data);
-
-  auto start_params = data.get<rcif::cmd::StartParams>();
-  if (start_params.trigger_rate > 0)
-  {
-    TLOG() << get_name() << " Changing rate: trigger_rate "
-           << start_params.trigger_rate;  
-    do_hsi_configure(start_params.trigger_rate);
-  }
-  else
-  {
-    TLOG() << get_name() << " Changing rate: trigger_rate "
-           << m_hsi_configuration->get_trigger_rate();  
-    do_hsi_configure(data);
-  }
   do_hsi_start(data);
 }
 
@@ -130,16 +111,6 @@ HSIController::do_scrap(const nlohmann::json& data)
   m_endpoint_state = 0x0;
 
   TimingController::do_scrap(data);
-}
-
-void
-HSIController::do_change_rate(const nlohmann::json& data)
-{
-  auto change_rate_params = data.get<rcif::cmd::ChangeRateParams>();
-  TLOG() << get_name() << " Changing rate: trigger_rate "
-         << change_rate_params.trigger_rate;
-
-  do_hsi_configure(change_rate_params.trigger_rate);
 }
 
 void
