@@ -9,8 +9,6 @@
 
 #include "FakeHSIEventGeneratorModule.hpp"
 
-#include "hsilibs/fakehsieventgenerator/Nljs.hpp"
-
 #include "utilities/Issues.hpp"
 
 #include "dfmessages/HSIEvent.hpp"
@@ -19,6 +17,8 @@
 #include "logging/Logging.hpp"
 #include "confmodel/DaqModule.hpp"
 #include "confmodel/Connection.hpp"
+#include "confmodel/Session.hpp"
+#include "confmodel/DetectorConfig.hpp"
 #include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
@@ -36,7 +36,7 @@ FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name
   , m_timestamp_estimator(nullptr)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
-  , m_clock_frequency(50e6)
+  , m_clock_frequency(62500000)
   , m_trigger_rate(1)        // Hz
   , m_active_trigger_rate(1) // Hz
   , m_event_period(1e6)      // us
@@ -52,7 +52,6 @@ FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name
   register_command("start", &FakeHSIEventGeneratorModule::do_start);
   register_command("stop_trigger_sources", &FakeHSIEventGeneratorModule::do_stop);
   register_command("scrap", &FakeHSIEventGeneratorModule::do_scrap);
-  register_command("change_rate", &FakeHSIEventGeneratorModule::do_change_rate);
 }
 
 void
@@ -61,6 +60,7 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ModuleConfiguration> m
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
+  m_clock_frequency = mcfg->configuration_manager()->session()->get_detector_configuration()->get_clock_speed_hz();
   auto mdal = mcfg->module<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
@@ -98,7 +98,6 @@ FakeHSIEventGeneratorModule::do_configure(const nlohmann::json& /*obj*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
-  m_clock_frequency = m_params->get_clock_frequency();
   if (m_params->get_trigger_rate() > 0) {
     m_trigger_rate.store(m_params->get_trigger_rate());
     m_active_trigger_rate.store(m_trigger_rate.load());
@@ -138,17 +137,9 @@ FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
               reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
               std::placeholders::_1));
 
-  if (start_params.trigger_rate > 0) {
-    m_active_trigger_rate.store(start_params.trigger_rate);
+  TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_active_trigger_rate.load() << ", "
+         << m_event_period.load();
 
-    // time between HSI events [us]
-    m_event_period.store(1.e6 / m_active_trigger_rate.load());
-    TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
-           << m_event_period.load();
-  } else {
-    TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_active_trigger_rate.load() << ", "
-           << m_event_period.load();
-  }
   m_run_number.store(start_params.run);
 
   // 28-Sep-2023, KAB: added code to wait for the Sender connection to be ready.
@@ -179,24 +170,6 @@ FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
   m_thread.start_working_thread("fake-tsd-gen");
   TLOG() << get_name() << " successfully started";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_start() method";
-}
-
-void
-FakeHSIEventGeneratorModule::do_change_rate(const nlohmann::json& obj)
-{
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_change_rate() method";
-
-  auto change_rate_params = obj.get<rcif::cmd::ChangeRateParams>();
-  TLOG() << get_name() << "trigger_RATE: " << change_rate_params.trigger_rate;
-  m_active_trigger_rate.store(change_rate_params.trigger_rate);
-
-  // time between HSI events [us]
-  m_event_period.store(1.e6 / m_active_trigger_rate.load());
-  TLOG() << get_name() << " Updating trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
-         << m_event_period.load();
-
-  TLOG() << get_name() << " successfully changed arate";
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_change_rate() method";
 }
 
 void
