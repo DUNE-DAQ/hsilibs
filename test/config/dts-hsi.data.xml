@@ -63,24 +63,98 @@
 
 <oks-data>
 
-<info name="" type="" num-of-items="2" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240417T160310"/>
+<info name="" type="" num-of-items="12" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="eflumerf" last-modified-on="ironvirt9.IRONDOMAIN.local" last-modification-time="20241023T204135"/>
 
 <include>
-    <file path="schema/hsilibs/hsi.schema.xml"/>
-    <file path="config/daqsystemtest/ccm.data.xml"/>
+ <file path="schema/hsilibs/hsi.schema.xml"/>
+ <file path="config/daqsystemtest/ccm.data.xml"/>
 </include>
 
 
 <obj class="DaqApplication" id="dts-hsi-ctrl">
-    <attr name="application_name" type="string" val="daq_application"/>
-    <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
-    <rel name="exposes_service">
-        <ref class="Service" id="dts-hsi-ctrl_control"/>
-    </rel>
-    <rel name="modules">
-     <ref class="HSIController" id="hsic"/>
-    </rel>
-    <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
+ <attr name="application_name" type="string" val="daq_application"/>
+ <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
+ <rel name="exposes_service">
+  <ref class="Service" id="dts-hsi-ctrl_control"/>
+ </rel>
+ <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
+ <rel name="modules">
+  <ref class="HSIController" id="hsic"/>
+ </rel>
+</obj>
+
+<obj class="DetectorConfig" id="dummy-detector">
+ <attr name="tpg_channel_map" type="string" val="PD2HDChannelMap"/>
+ <attr name="clock_speed_hz" type="u32" val="62500000"/>
+ <attr name="op_env" type="string" val="test"/>
+ <attr name="offline_data_stream" type="string" val="cosmics"/>
+</obj>
+
+<obj class="HSIController" id="hsic">
+ <rel name="configuration" class="HSIControllerConf" id="hsic-conf"/>
+</obj>
+
+<obj class="HSIControllerConf" id="hsic-conf">
+ <attr name="device" type="string" val="CHRONOS"/>
+ <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+ <attr name="clock_source" type="u32" val="1"/>
+ <attr name="soft" type="bool" val="0"/>
+ <attr name="uhal_log_level" type="enum" val="notice"/>
+ <attr name="connections_file" type="string" val="connections.xml"/>
+ <attr name="trigger_rate" type="double" val="1"/>
+ <attr name="control_hardware_io" type="bool" val="1"/>
+ <attr name="rising_edge_mask" type="u32" val="1"/>
+ <attr name="data_source" type="u32" val="1"/>
+</obj>
+
+<obj class="RCApplication" id="dts-hsi-rc">
+ <attr name="application_name" type="string" val="drunc-controller"/>
+ <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
+ <rel name="exposes_service">
+  <ref class="Service" id="dts-hsi-rc_control"/>
+ </rel>
+ <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
+ <rel name="fsm" class="FSMconfiguration" id="fsmConf-test"/>
+</obj>
+
+<obj class="Segment" id="generated-segment">
+ <rel name="applications">
+  <ref class="DaqApplication" id="dts-hsi-ctrl"/>
+ </rel>
+ <rel name="controller" class="RCApplication" id="dts-hsi-rc"/>
+</obj>
+
+<obj class="Service" id="dts-hsi-ctrl_control">
+ <attr name="protocol" type="string" val="rest"/>
+ <attr name="port" type="u16" val="5801"/>
+</obj>
+
+<obj class="Service" id="dts-hsi-rc_control">
+ <attr name="protocol" type="string" val="grpc"/>
+ <attr name="port" type="u16" val="5800"/>
+</obj>
+
+<obj class="Session" id="test-session">
+ <attr name="data_request_timeout_ms" type="u32" val="1000"/>
+ <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
+ <attr name="controller_log_level" type="enum" val="INFO"/>
+ <rel name="environment">
+  <ref class="VariableSet" id="local-variables"/>
+  <ref class="Variable" id="session-env-session-name-0"/>
+  <ref class="Variable" id="session-env-session-name-1"/>
+  <ref class="Variable" id="daqapp-cli-configuration"/>
+ </rel>
+ <rel name="segment" class="Segment" id="generated-segment"/>
+ <rel name="infrastructure_applications">
+  <ref class="ConnectionService" id="local-connection-server"/>
+ </rel>
+ <rel name="detector_configuration" class="DetectorConfig" id="dummy-detector"/>
+ <rel name="opmon_uri" class="OpMonURI" id="local-opmon-uri"/>
+</obj>
+
+<obj class="Variable" id="daqapp-cli-configuration">
+ <attr name="name" type="string" val="DAQAPP_CLI_CONFIG_SVC"/>
+ <attr name="value" type="string" val="oksconflibs:config/oks_configs/example-configs.data.xml"/>
 </obj>
 
 <obj class="Variable" id="session-env-session-name-0">
@@ -91,80 +165,6 @@
 <obj class="Variable" id="session-env-session-name-1">
  <attr name="name" type="string" val="DUNEDAQ_SESSION"/>
  <attr name="value" type="string" val="test-session"/>
-</obj>
-
-<obj class="Variable" id="daqapp-cli-configuration">
- <attr name="name" type="string" val="DAQAPP_CLI_CONFIG_SVC"/>
- <attr name="value" type="string" val="oksconflibs:config/oks_configs/example-configs.data.xml"/>
-</obj>
-
-<obj class="Session" id="test-session">
-    <attr name="use_connectivity_server" type="bool" val="1"/>
-    <attr name="connectivity_service_interval_ms" type="u32" val="2000"/>
-    <attr name="data_request_timeout_ms" type="u32" val="1000"/>
-    <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
-    <rel name="environment">
-     <ref class="VariableSet" id="local-variables"/>
-     <ref class="Variable" id="session-env-session-name-0"/>
-     <ref class="Variable" id="session-env-session-name-1"/>
-     <ref class="Variable" id="daqapp-cli-configuration"/>
-    </rel>
-    <rel name="segment" class="Segment" id="generated-segment"/>  
-    <rel name="disabled">
-    </rel>
-    <rel name="infrastructure_applications">
-    <ref class="ConnectionService" id="local-connection-server"/>
-    </rel>
-    <rel name="detector_configuration" class="DetectorConfig" id="dummy-detector"/>
-    <rel name="opmon_uri" class="OpMonURI" id="local-opmon-uri"/>
-</obj>
-
-<obj class="DetectorConfig" id="dummy-detector">
- <attr name="tpg_channel_map" type="string" val="PD2HDChannelMap"/>
- <attr name="clock_speed_hz" type="u32" val="62500000"/>
- <attr name="op_env" type="string" val="test"/>
-</obj>
-
-<obj class="RCApplication" id="dts-hsi-rc">
-    <attr name="application_name" type="string" val="drunc-controller"/>
-    <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
-    <rel name="exposes_service">
-        <ref class="Service" id="dts-hsi-rc_control"/>
-    </rel>
-    <rel name="fsm" class="FSMconfiguration" id="fsmConf-test"/>
-    <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
-</obj>
-
-<obj class="Segment" id="generated-segment">
-    <rel name="applications">
-     <ref class="DaqApplication" id="dts-hsi-ctrl"/>
-    </rel>
-    <rel name="controller" class="RCApplication" id="dts-hsi-rc"/>
-</obj>
-
-<obj class="Service" id="dts-hsi-rc_control">
- <attr name="protocol" type="string" val="grpc"/>
- <attr name="port" type="u16" val="5800"/>
-</obj>
-
-<obj class="Service" id="dts-hsi-ctrl_control">
- <attr name="protocol" type="string" val="rest"/>
- <attr name="port" type="u16" val="5801"/>
-</obj>
-
-<obj class="HSIController" id="hsic">
-    <rel name="configuration" class="HSIControllerConf" id="hsic-conf"/>
-</obj>
-
- <obj class="HSIControllerConf" id="hsic-conf">
-    <attr name="uhal_log_level" type="enum" val="notice"/>
-    <attr name="connections_file" type="string" val="connections.xml"/>
-    <attr name="device" type="string" val="CHRONOS"/>
-    <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
-    <attr name="timing_session_name" type="string" val=""/>
-    <attr name="clock_source" type="u32" val="1" />
-    <attr name="control_hardware_io" type="bool" val="1"/>
-    <attr name="data_source" type="u32" val="1"/>
 </obj>
 
 </oks-data>
