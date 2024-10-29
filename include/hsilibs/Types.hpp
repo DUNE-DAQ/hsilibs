@@ -55,6 +55,11 @@ public:
     frame.set_timestamp(ts);
   }
 
+  void fake_timestamps(uint64_t first_timestamp, uint64_t /*offset*/= 0 ) // NOLINT(build/unsigned)
+  {
+    frame.set_timestamp(first_timestamp);
+  }
+
   FrameType* begin() { return this; }
 
   FrameType* end() { return (this + 1); } // NOLINT
@@ -68,7 +73,7 @@ public:
   static const constexpr daqdataformats::SourceID::Subsystem subsystem =
     daqdataformats::SourceID::Subsystem::kHwSignalsInterface;
   static const constexpr daqdataformats::FragmentType fragment_type = daqdataformats::FragmentType::kHardwareSignal;
-  static const constexpr uint64_t expected_tick_difference = 0; // NOLINT(build/unsigned)
+  static const constexpr uint64_t expected_tick_difference = 1; // NOLINT(build/unsigned)
 };
 
 static_assert(sizeof(struct HSI_FRAME_STRUCT) == HSI_FRAME_STRUCT_SIZE,
