@@ -62,5 +62,7 @@ daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs timing::timing
 
 ##############################################################################
 
+daq_add_unit_test(HSITypeAdapters_test LINK_LIBRARIES hsilibs ${BOOST_LIBS})
+
 ##############################################################################
 daq_install()
