@@ -17,7 +17,7 @@
 #include "logging/Logging.hpp"
 #include "confmodel/DaqModule.hpp"
 #include "confmodel/Connection.hpp"
-#include "confmodel/Session.hpp"
+#include "confmodel/System.hpp"
 #include "confmodel/DetectorConfig.hpp"
 #include "rcif/cmd/Nljs.hpp"
 
@@ -60,7 +60,7 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ModuleConfiguration> m
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
-  m_clock_frequency = mcfg->configuration_manager()->session()->get_detector_configuration()->get_clock_speed_hz();
+  m_clock_frequency = mcfg->configuration_manager()->system()->get_detector_configuration()->get_clock_speed_hz();
   auto mdal = mcfg->module<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
