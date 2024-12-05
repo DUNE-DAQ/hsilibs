@@ -33,6 +33,8 @@ find_package(conffwk REQUIRED)
 
 daq_oks_codegen(hsi.schema.xml NAMESPACE dunedaq::hsilibs::dal DALDIR dal DEP_PKGS timinglibs confmodel)
 
+daq_protobuf_codegen( opmon/*.proto )
+
 set(BOOST_LIBS Boost::iostreams ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_LIBRARIES})
 
 ##############################################################################
