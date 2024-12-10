@@ -12,6 +12,8 @@
 #include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
+#include "hsilibs/HSIReadoutInfo.pb.h"
+
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
 #include "confmodel/DaqModule.hpp"
@@ -302,16 +304,16 @@ void
 HSIReadout::generate_opmon_data()
 {
 
-  opmon::HSIReadoutInfo fcr;
+  opmon::HSIReadoutInfo info;
 
-  fcr.set_readout_hsi_events_counter(m_readout_counter.load());
-  fcr.set_sent_hsi_events_counter(m_sent_counter.load());
-  fcr.set_failed_to_send_hsi_events_counter(m_failed_to_send_counter.load());
-  fcr.set_last_readout_timestamp(m_last_readout_timestamp.load());
-  fcr.set_last_sent_timestamp(m_last_sent_timestamp.load());
-  fcr.set_average_buffer_occupancy(read_average_buffer_counts());
+  info.set_readout_hsi_events_counter(m_readout_counter.load());
+  info.set_sent_hsi_events_counter(m_sent_counter.load());
+  info.set_failed_to_send_hsi_events_counter(m_failed_to_send_counter.load());
+  info.set_last_readout_timestamp(m_last_readout_timestamp.load());
+  info.set_last_sent_timestamp(m_last_sent_timestamp.load());
+  info.set_average_buffer_occupancy(read_average_buffer_counts());
 
-  publish(std::move(fcr));
+  publish(std::move(info));
 
 }
 
