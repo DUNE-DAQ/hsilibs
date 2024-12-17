@@ -12,7 +12,7 @@
 #include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
-#include "hsilibs/HSIReadoutInfo.pb.h"
+#include "hsilibs/opmon/hsi_readout_info.pb.cc"
 
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
