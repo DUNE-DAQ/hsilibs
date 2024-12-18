@@ -48,7 +48,7 @@ public:
   HSIController(HSIController&&) = delete;                 ///< HSIController is not move-constructible
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
 
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
 protected:
   const hsilibs::dal::HSIControllerConf* m_hsi_configuration;
 

@@ -55,10 +55,10 @@ HSIController::HSIController(const std::string& name)
 }
 
 void
-HSIController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+HSIController::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
   TimingController::init(mcfg);
-  auto mod_config = mcfg->module<hsilibs::dal::HSIController>(get_name());
+  auto mod_config = mcfg->get_dal<hsilibs::dal::HSIController>(get_name());
   m_hsi_configuration = mod_config->get_configuration()->cast<hsilibs::dal::HSIControllerConf>();
 }
 

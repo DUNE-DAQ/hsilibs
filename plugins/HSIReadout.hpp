@@ -53,7 +53,7 @@ public:
   HSIReadout(HSIReadout&&) = delete;                 ///< HSIReadout is not move-constructible
   HSIReadout& operator=(HSIReadout&&) = delete;      ///< HSIReadout is not move-assignable
 
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
   // void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
