@@ -18,6 +18,7 @@
 #include "timinglibs/TimingEndpointControllerBase.hpp"
 #include "timinglibs/TimingHardwareInterface.hpp"
 
+
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -56,7 +57,7 @@ protected:
   bool m_control_hardware_io;
 
   dunedaq::utilities::WorkerThread m_thread;
-  void gather_monitor_data(std::atomic<bool>&);
+  void gather_monitor_data(InfoGatherer& gatherer);
 
   // Commands
   void do_configure(const nlohmann::json& data) override;

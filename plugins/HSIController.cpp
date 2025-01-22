@@ -13,6 +13,7 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
+#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
 #include "timing/timingfirmwareinfo/Nljs.hpp"
@@ -326,23 +327,20 @@ HSIController::process_device_info(nlohmann::json info)
 }
 
 void
-HSIController::gather_monitor_data(std::atomic<bool>& running_flag)
+HSIController::gather_monitor_data(InfoGatherer& gatherer)
 {
-  while (running_flag.load()) {
+  auto device_name = gatherer.get_device_name();
 
-    timing::timingfirmwareinfo::TimingDeviceInfo device_info;
+  while (gatherer.run_gathering()) {
     // collect the data from the hardware
     try
     {
-      auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
-      design->get_info(device_info);
-    } catch (const std::exception& excpt) {
-      ers::warning(timinglibs::FailedToCollectOpMonInfo(ERS_HERE, m_timing_device, excpt));
-    }
+      auto design = get_timing_device<const timing::TopDesignInterface*>(device_name);
 
-    nlohmann::json info;
-    to_json(info, device_info);
-    process_device_info(info);
+      gatherer.collect_info_from_device(*design);
+    } catch (const std::exception& excpt) {
+      ers::warning(timinglibs::FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
+    }
 
     auto prev_gather_time = std::chrono::steady_clock::now();
     auto next_gather_time = prev_gather_time + std::chrono::milliseconds(500);
