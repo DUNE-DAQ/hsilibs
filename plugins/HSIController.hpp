@@ -56,7 +56,8 @@ protected:
   bool m_control_hardware_io;
 
   dunedaq::utilities::WorkerThread m_thread;
-  void gather_monitor_data(InfoGatherer& gatherer);
+  // void gather_monitor_data(dunedaq::timinglibs::dal::InfoGatherer& gatherer);
+  void gather_monitor_data(std::atomic<bool>& running_flag);
 
   // Commands
   void do_configure(const nlohmann::json& data) override;
