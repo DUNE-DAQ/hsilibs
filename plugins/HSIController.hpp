@@ -18,7 +18,6 @@
 #include "timinglibs/TimingEndpointControllerBase.hpp"
 #include "timinglibs/TimingHardwareInterface.hpp"
 
-
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"

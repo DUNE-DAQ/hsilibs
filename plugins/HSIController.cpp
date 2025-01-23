@@ -8,13 +8,14 @@
  */
 
 #include "HSIController.hpp"
+#include "hsilibs/dal/HSIController.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 #include "timing/HSIDesignInterface.hpp"
+#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 
 #include "timing/timingfirmwareinfo/Nljs.hpp"
 #include "timing/timingfirmwareinfo/Structs.hpp"
@@ -29,9 +30,8 @@
 #include <vector>
 
 namespace dunedaq {
-
 namespace hsilibs {
-
+  
 HSIController::HSIController(const std::string& name)
   : dunedaq::timinglibs::TimingEndpointControllerBase(name, 9) // 2nd arg: how many hw commands can this module send?
   , m_endpoint_state(0)
@@ -326,8 +326,49 @@ HSIController::process_device_info(nlohmann::json info)
   }
 }
 
+// void
+// HSIController::gather_monitor_data(std::atomic<bool>& running_flag)
+// {
+//   while (running_flag.load()) {
+
+//     timing::timingfirmwareinfo::TimingDeviceInfo device_info;
+//     // collect the data from the hardware
+//     try
+//     {
+//       auto design = dunedaq::timinglibs::dal::TimingHardwareManagerBase::get_timing_device<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
+//       design->get_info(device_info);
+//     } catch (const std::exception& excpt) {
+//       ers::warning(timinglibs::FailedToCollectOpMonInfo(ERS_HERE, m_timing_device, excpt));
+//     }
+
+//     nlohmann::json info;
+//     to_json(info, device_info);
+//     process_device_info(info);
+
+//     auto prev_gather_time = std::chrono::steady_clock::now();
+//     auto next_gather_time = prev_gather_time + std::chrono::milliseconds(500);
+
+//     // check running_flag periodically
+//     auto slice_period = std::chrono::microseconds(10000);
+//     auto next_slice_gather_time = prev_gather_time + slice_period;
+
+//     bool break_flag = false;
+//     while (next_gather_time > next_slice_gather_time + slice_period) {
+//       if (!running_flag.load()) {
+//         TLOG_DEBUG(0) << "while waiting to gather data, negative run flag detected.";
+//         break_flag = true;
+//         break;
+//       }
+//       std::this_thread::sleep_until(next_slice_gather_time);
+//       next_slice_gather_time = next_slice_gather_time + slice_period;
+//     }
+//     if (break_flag == false) {
+//       std::this_thread::sleep_until(next_gather_time);
+//     }
+//   }
+// }
 void
-HSIController::gather_monitor_data(InfoGatherer& gatherer)
+HSIController::gather_monitor_data(timinglibs::InfoGatherer& gatherer)
 {
   auto device_name = gatherer.get_device_name();
 
@@ -335,7 +376,7 @@ HSIController::gather_monitor_data(InfoGatherer& gatherer)
     // collect the data from the hardware
     try
     {
-      auto design = get_timing_device<const timing::TopDesignInterface*>(device_name);
+      auto design = dunedaq::timinglibs::dal::TimingHardwareManagerBase::get_timing_device<const timing::HSIDesignInterface*>(device_name);
 
       gatherer.collect_info_from_device(*design);
     } catch (const std::exception& excpt) {
