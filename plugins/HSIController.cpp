@@ -15,7 +15,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 
 #include "timing/HSIDesignInterface.hpp"
-#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 
 #include "timing/timingfirmwareinfo/Nljs.hpp"
 #include "timing/timingfirmwareinfo/Structs.hpp"
@@ -31,7 +30,7 @@
 
 namespace dunedaq {
 namespace hsilibs {
-  
+
 HSIController::HSIController(const std::string& name)
   : dunedaq::timinglibs::TimingEndpointControllerBase(name, 9) // 2nd arg: how many hw commands can this module send?
   , m_endpoint_state(0)
@@ -335,7 +334,7 @@ HSIController::gather_monitor_data(std::atomic<bool>& running_flag)
     // collect the data from the hardware
     try
     {
-      auto design = dunedaq::timinglibs::dal::TimingHardwareManagerBase::get_timing_device<const timing::HSIDesignInterface*>(m_timing_device);
+      auto design = cast_timing_device<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
       design->get_info(device_info);
     } catch (const std::exception& excpt) {
       ers::warning(timinglibs::FailedToCollectOpMonInfo(ERS_HERE, m_timing_device, excpt));
