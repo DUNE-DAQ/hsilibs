@@ -56,7 +56,6 @@ protected:
   bool m_control_hardware_io;
 
   dunedaq::utilities::WorkerThread m_thread;
-  // void gather_monitor_data(dunedaq::timinglibs::dal::InfoGatherer& gatherer);
   void gather_monitor_data(std::atomic<bool>& running_flag);
 
   // Commands
@@ -87,6 +86,7 @@ protected:
   std::atomic<uint> m_endpoint_state;
   uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
 
+  // void generate_opmon_data();
 };
 } // namespace hsilibs
 } // namespace dunedaq
