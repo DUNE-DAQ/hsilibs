@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package dunedaq.hsilibs.opmon;
+
+message HSIReadoutInfo {
+
+  uint64 readout_hsi_events_counter = 1;
+  uint64 sent_hsi_events_counter = 2;
+
+  uint64 failed_to_send_hsi_events_counter = 11;
+
+  uint64 last_readout_timestamp = 21;
+  uint64 last_sent_timestamp = 22;
+
+  uint64 average_buffer_occupancy = 31;
+    
+}

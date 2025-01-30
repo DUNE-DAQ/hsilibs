@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package dunedaq.hsilibs.opmon;
+
+message HSIControllerInfo {
+
+  uint64 sent_hsi_io_reset_cmds = 1;
+  uint64 sent_hsi_endpoint_enable_cmds = 2;
+  uint64 sent_hsi_endpoint_disable_cmds = 3;
+  uint64 sent_hsi_endpoint_reset_cmds = 4;
+  uint64 sent_hsi_reset_cmds = 5;
+  uint64 sent_hsi_configure_cmds = 6;
+  uint64 sent_hsi_start_cmds = 7;
+  uint64 sent_hsi_stop_cmds = 8;
+  uint64 sent_hsi_print_status_cmds = 9;
+  uint64 device_infos_received_count = 10;
+    
+}

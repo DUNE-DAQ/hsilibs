@@ -54,7 +54,6 @@ public:
   HSIReadout& operator=(HSIReadout&&) = delete;      ///< HSIReadout is not move-assignable
 
   void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
-  // void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
@@ -84,7 +83,7 @@ private:
   void update_buffer_counts(uint16_t new_count); // NOLINT(build/unsigned)
   double read_average_buffer_counts();
 
-
+  void generate_opmon_data();
 };
 } // namespace hsilibs
 } // namespace dunedaq
