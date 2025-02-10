@@ -86,7 +86,7 @@ protected:
   std::atomic<uint> m_endpoint_state;
   uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
 
-  // void generate_opmon_data();
+  void generate_opmon_data();
 };
 } // namespace hsilibs
 } // namespace dunedaq
