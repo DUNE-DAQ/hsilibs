@@ -258,26 +258,24 @@ HSIController::do_hsi_print_status(const nlohmann::json&)
   ++(m_sent_hw_command_counters.at(8).atomic);
 }
 
-// void
-// HSIController::generate_opmon_data()
-// {
-//  TODO: FIX COMPILER ERRORS
-//  // send counters internal to the module
-//  opmon::HSIControllerInfo info;
-//  info.sent_hsi_io_reset_cmds(m_sent_hw_command_counters.at(0).atomic);
-//  info.sent_hsi_endpoint_enable_cmds(m_sent_hw_command_counters.at(1).atomic);
-//  info.sent_hsi_endpoint_disable_cmds(m_sent_hw_command_counters.at(2).atomic);
-//  info.sent_hsi_endpoint_reset_cmds(m_sent_hw_command_counters.at(3).atomic);
-//  info.sent_hsi_reset_cmds(m_sent_hw_command_counters.at(4).atomic);
-//  info.sent_hsi_configure_cmds(m_sent_hw_command_counters.at(5).atomic);
-//  info.sent_hsi_start_cmds(m_sent_hw_command_counters.at(6).atomic);
-//  info.sent_hsi_stop_cmds(m_sent_hw_command_counters.at(7).atomic);
-//  info.sent_hsi_print_status_cmds(m_sent_hw_command_counters.at(8).atomic);
-//  info.device_infos_received_count(m_device_infos_received_count);
+void
+HSIController::generate_opmon_data()
+{
+  // send counters internal to the module
+  opmon::HSIControllerInfo info;
+  info.set_sent_hsi_io_reset_cmds(m_sent_hw_command_counters.at(0).atomic);
+  info.set_sent_hsi_endpoint_enable_cmds(m_sent_hw_command_counters.at(1).atomic);
+  info.set_sent_hsi_endpoint_disable_cmds(m_sent_hw_command_counters.at(2).atomic);
+  info.set_sent_hsi_endpoint_reset_cmds(m_sent_hw_command_counters.at(3).atomic);
+  info.set_sent_hsi_reset_cmds(m_sent_hw_command_counters.at(4).atomic);
+  info.set_sent_hsi_configure_cmds(m_sent_hw_command_counters.at(5).atomic);
+  info.set_sent_hsi_start_cmds(m_sent_hw_command_counters.at(6).atomic);
+  info.set_sent_hsi_stop_cmds(m_sent_hw_command_counters.at(7).atomic);
+  info.set_sent_hsi_print_status_cmds(m_sent_hw_command_counters.at(8).atomic);
+  info.set_device_infos_received_count(m_device_infos_received_count);
 
-//  publish(std::move(info));
-
-// }
+  publish(std::move(info));
+}
 
 void
 HSIController::process_device_info(nlohmann::json info)
