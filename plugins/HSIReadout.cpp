@@ -12,6 +12,8 @@
 #include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
 
+#include "hsilibs/opmon/hsi_readout_info.pb.cc"
+
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
 #include "confmodel/DaqModule.hpp"
@@ -298,23 +300,22 @@ HSIReadout::read_average_buffer_counts()
   }
 }
 
-// void
-// HSIReadout::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-// {
-//   // send counters internal to the module
-//   hsireadoutinfo::Info module_info;
+void
+HSIReadout::generate_opmon_data()
+{
 
-//   module_info.readout_hsi_events_counter = m_readout_counter.load();
-//   module_info.sent_hsi_events_counter = m_sent_counter.load();
-//   module_info.failed_to_send_hsi_events_counter = m_failed_to_send_counter.load();
+  opmon::HSIReadoutInfo info;
 
-//   module_info.last_readout_timestamp = m_last_readout_timestamp.load();
-//   module_info.last_sent_timestamp = m_last_sent_timestamp.load();
+  info.set_readout_hsi_events_counter(m_readout_counter.load());
+  info.set_sent_hsi_events_counter(m_sent_counter.load());
+  info.set_failed_to_send_hsi_events_counter(m_failed_to_send_counter.load());
+  info.set_last_readout_timestamp(m_last_readout_timestamp.load());
+  info.set_last_sent_timestamp(m_last_sent_timestamp.load());
+  info.set_average_buffer_occupancy(read_average_buffer_counts());
 
-//   module_info.average_buffer_occupancy = read_average_buffer_counts();
+  publish(std::move(info));
 
-//   ci.add(module_info);
-// }
+}
 
 } // namespace hsilibs
 } // namespace dunedaq
