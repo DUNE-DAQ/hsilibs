@@ -47,11 +47,11 @@ HSIReadout::HSIReadout(const std::string& name)
 }
 
 void
-HSIReadout::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+HSIReadout::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
-  auto mdal = mcfg->module<appmodel::HSIReadout>(get_name());
+  auto mdal = mcfg->get_dal<appmodel::HSIReadout>(get_name());
 
   for (auto con : mdal->get_outputs()) {
     if (con->get_data_type() == datatype_to_string<HSI_FRAME_STRUCT>()) {
