@@ -55,13 +55,13 @@ FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name
 }
 
 void
-FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
-  m_clock_frequency = mcfg->configuration_manager()->session()->get_detector_configuration()->get_clock_speed_hz();
-  auto mdal = mcfg->module<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
+  m_clock_frequency = mcfg->session()->get_detector_configuration()->get_clock_speed_hz();
+  auto mdal = mcfg->get_dal<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
     throw appfwk::CommandFailed(ERS_HERE, "init", get_name(), "Unable to retrieve configuration object");
