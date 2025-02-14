@@ -14,7 +14,7 @@
 
 #include "hsilibs/opmon/hsi_readout_info.pb.cc"
 
-#include "logging/Logging.hpp"
+#include "logging/Logging.hpp" // NOTE: if ISSUES ARE DECLARED BEFORE include logging/Logging.hpp, TLOG_DEBUG<<issue wont work.
 #include "rcif/cmd/Nljs.hpp"
 #include "confmodel/DaqModule.hpp"
 #include "confmodel/Connection.hpp"
