@@ -3,6 +3,7 @@
 
 include(CMakeFindDependencyMacro)
 
+find_dependency(confmodel)
 find_dependency(ers)
 find_dependency(logging)
 find_dependency(pybind11)
@@ -18,11 +19,15 @@ find_dependency(opmonlib)
 find_dependency(uhal)
 find_dependency(pugixml)
 find_dependency(iomanager)
-find_dependency(dfmessages)
 find_dependency(daqdataformats)
 find_dependency(detdataformats)
 find_dependency(utilities)
 find_dependency(Boost COMPONENTS program_options iostreams)
+find_dependency(appmodel)
+find_dependency(okssystem)
+find_dependency(oks)
+find_dependency(oksdalgen)
+find_dependency(conffwk)
 
 # Figure out whether or not this dependency is an installed package or
 # in repo form

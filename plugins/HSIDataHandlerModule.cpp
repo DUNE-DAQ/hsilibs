@@ -45,7 +45,7 @@ HSIDataHandlerModule::HSIDataHandlerModule(const std::string& name)
 }
 
 void
-HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+HSIDataHandlerModule::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
@@ -57,7 +57,7 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
                     rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
                     rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
                     hsilibs::HSIFrameProcessor>>(m_run_marker);
-  m_readout_impl->init(mcfg->module<appmodel::DataHandlerModule>(get_name()));
+  m_readout_impl->init(mcfg->get_dal<appmodel::DataHandlerModule>(get_name()));
   if (m_readout_impl == nullptr)
   {
     TLOG() << get_name() << "Initialize HSIDataHandlerModule FAILED! ";
@@ -66,11 +66,11 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
-void
-HSIDataHandlerModule::get_info(opmonlib::InfoCollector& ci, int level)
-{
-  m_readout_impl->get_info(ci, level);
-}
+// void
+// HSIDataHandlerModule::get_info(opmonlib::InfoCollector& ci, int level)
+// {
+//   m_readout_impl->get_info(ci, level);
+// }
 
 void
 HSIDataHandlerModule::do_conf(const data_t& args)

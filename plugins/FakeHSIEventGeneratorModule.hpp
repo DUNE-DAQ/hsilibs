@@ -10,10 +10,6 @@
 #include "hsilibs/HSIEventSender.hpp"
 
 #include "utilities/TimestampEstimator.hpp"
-#include "hsilibs/fakehsieventgenerator/Nljs.hpp"
-#include "hsilibs/fakehsieventgenerator/Structs.hpp"
-#include "hsilibs/fakehsieventgeneratorinfo/InfoNljs.hpp"
-#include "hsilibs/fakehsieventgeneratorinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "daqdataformats/Types.hpp"
@@ -52,8 +48,8 @@ public:
   FakeHSIEventGeneratorModule(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-constructible
   FakeHSIEventGeneratorModule& operator=(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-assignable
 
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
+  //void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
@@ -61,7 +57,6 @@ private:
   void do_start(const nlohmann::json& obj) override;
   void do_stop(const nlohmann::json& obj) override;
   void do_scrap(const nlohmann::json& obj) override;
-  void do_change_rate(const nlohmann::json& obj);
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
   

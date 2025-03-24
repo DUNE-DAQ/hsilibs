@@ -8,13 +8,10 @@
 #define HSILIBS_PLUGINS_HSIREADOUT_HPP_
 
 #include "hsilibs/HSIEventSender.hpp"
-#include "hsilibs/hsireadout/Nljs.hpp"
-#include "hsilibs/hsireadout/Structs.hpp"
-#include "hsilibs/hsireadoutinfo/InfoNljs.hpp"
-#include "hsilibs/hsireadoutinfo/InfoStructs.hpp"
 
 #include "timinglibs/TimingHardwareInterface.hpp"
-#include "timinglibs/dal/HSIReadout.hpp"
+#include "appmodel/HSIReadout.hpp"
+#include "appmodel/HSIReadoutConf.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "dfmessages/HSIEvent.hpp"
@@ -56,12 +53,12 @@ public:
   HSIReadout(HSIReadout&&) = delete;                 ///< HSIReadout is not move-constructible
   HSIReadout& operator=(HSIReadout&&) = delete;      ///< HSIReadout is not move-assignable
 
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
+  // void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
-  hsireadout::ConfParams m_cfg;
+  const appmodel::HSIReadoutConf* m_params;
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
@@ -87,8 +84,7 @@ private:
   void update_buffer_counts(uint16_t new_count); // NOLINT(build/unsigned)
   double read_average_buffer_counts();
 
-  const timinglibs::dal::HSIReadout* m_params;
-
+  void generate_opmon_data();
 };
 } // namespace hsilibs
 } // namespace dunedaq

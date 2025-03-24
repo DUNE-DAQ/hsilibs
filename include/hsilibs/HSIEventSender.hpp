@@ -44,7 +44,7 @@ public:
   HSIEventSender(HSIEventSender&&) = delete;                 ///< HSIEventSender is not move-constructible
   HSIEventSender& operator=(HSIEventSender&&) = delete;      ///< HSIEventSender is not move-assignable
 
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
 
 protected:
   // Commands
