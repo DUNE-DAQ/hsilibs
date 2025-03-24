@@ -19,11 +19,6 @@ using dunedaq::datahandlinglibs::logging::TLVL_FRAME_RECEIVED;
 namespace dunedaq {
 namespace hsilibs {
 
-HSIFrameProcessor::HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry)
-  : TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>(error_registry)
-  , m_previous_ts(0)
-{}
-
 void 
 HSIFrameProcessor::conf(const appmodel::DataHandlerModule* conf)
 {

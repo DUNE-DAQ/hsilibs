@@ -35,6 +35,7 @@ public:
   // Constructor
   explicit HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry, bool /*post_processing*/)
     : TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>(error_registry, false)
+    , m_previous_ts(0)
   {}
 
   // Override config for pipeline setup
