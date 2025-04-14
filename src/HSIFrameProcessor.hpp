@@ -44,7 +44,7 @@ public:
 protected:
 
   /**
-   * Pipeline Stage 1.: Check proper timestamp increments in DAPHNE frame
+   * Pipeline Stage 1.: Check proper timestamp increments in HSI frame
    * */
   void timestamp_check(frameptr /*fp*/);
 
