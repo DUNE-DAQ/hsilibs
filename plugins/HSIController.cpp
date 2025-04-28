@@ -85,7 +85,7 @@ HSIController::do_configure(const nlohmann::json& data)
 
   m_thread.start_working_thread("gather-hsi-info");
 
-  configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state.load());
+  configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state);
 
   TLOG() << get_name() << " conf done for hsi endpoint, device: " << m_timing_device;
 }
