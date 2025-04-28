@@ -54,7 +54,7 @@ protected:
 
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   bool m_control_hardware_io;
-
+  uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread m_thread;
   void gather_monitor_data(std::atomic<bool>& running_flag);
 
@@ -82,9 +82,6 @@ protected:
 
   // op mon info
   void process_device_info(nlohmann::json info) override;
-
-  std::atomic<uint> m_endpoint_state;
-  uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
 
   void generate_opmon_data();
 };
