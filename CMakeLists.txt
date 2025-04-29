@@ -31,7 +31,7 @@ find_package(oks REQUIRED)
 find_package(oksdalgen REQUIRED)
 find_package(conffwk REQUIRED)
 
-add_dal_library(hsi.schema.xml NAMESPACE dunedaq::hsilibs::dal DALDIR dal DEP_PKGS timinglibs confmodel)
+daq_add_dal_library(hsi.schema.xml NAMESPACE dunedaq::hsilibs::dal DALDIR dal DEP_PKGS timinglibs confmodel)
 
 daq_protobuf_codegen( opmon/*.proto )
 
@@ -60,11 +60,11 @@ daq_add_library(HSIEventSender.cpp HSIFrameProcessor.cpp LINK_LIBRARIES ${HSILIB
 daq_add_plugin(HSIDataHandlerModule duneDAQModule LINK_LIBRARIES hsilibs datahandlinglibs::datahandlinglibs timinglibs::dal ${BOOST_LIBS})
 daq_add_plugin(FakeHSIEventGeneratorModule duneDAQModule LINK_LIBRARIES hsilibs timing::timing  timinglibs::dal utilities::utilities)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing hsilibs  timinglibs::dal appmodel::dal)
-daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs dal_hsilibs timing::timing  timinglibs::dal )
+daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES hsilibs hsilibs_dal timing::timing  timinglibs::dal )
 
 ##############################################################################
 
-daq_add_unit_test(HSITypeAdapters_test LINK_LIBRARIES hsilibs dal_hsilibs ${BOOST_LIBS})
+daq_add_unit_test(HSITypeAdapters_test LINK_LIBRARIES hsilibs hsilibs_dal ${BOOST_LIBS})
 
 ##############################################################################
 daq_install()
