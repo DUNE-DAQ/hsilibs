@@ -36,7 +36,6 @@ namespace hsilibs {
 
 HSIController::HSIController(const std::string& name)
   : dunedaq::timinglibs::TimingEndpointControllerBase(name, 9) // 2nd arg: how many hw commands can this module send?
-  , m_endpoint_state(0)
   , m_control_hardware_io(false)
   , m_clock_frequency(62.5e6)
   , m_thread(std::bind(&HSIController::gather_monitor_data, this, std::placeholders::_1))
@@ -85,7 +84,7 @@ HSIController::do_configure(const nlohmann::json& data)
 
   m_thread.start_working_thread("gather-hsi-info");
 
-  configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state.load());
+  configure_hardware_or_recover_state<timinglibs::TimingEndpointNotReady>(data, "HSI endpoint", m_endpoint_state);
 
   TLOG() << get_name() << " conf done for hsi endpoint, device: " << m_timing_device;
 }
@@ -155,7 +154,7 @@ HSIController::do_io_reset(const nlohmann::json& )
 }
 
 void
-HSIController::do_endpoint_enable(const nlohmann::json& data)
+HSIController::do_endpoint_enable(const nlohmann::json& /*data*/)
 {
   auto ept_address = m_hsi_configuration->get_address();
   TLOG_DEBUG(0) << "ept enable hw cmd; a: " << ept_address;
@@ -167,7 +166,7 @@ HSIController::do_endpoint_enable(const nlohmann::json& data)
 }
 
 void
-HSIController::do_endpoint_disable(const nlohmann::json& data)
+HSIController::do_endpoint_disable(const nlohmann::json& /*data*/)
 {
   TLOG_DEBUG(0) << "ept disable hw cmd";
 
@@ -177,7 +176,7 @@ HSIController::do_endpoint_disable(const nlohmann::json& data)
 }
 
 void
-HSIController::do_endpoint_reset(const nlohmann::json& data)
+HSIController::do_endpoint_reset(const nlohmann::json& /*data*/)
 {
   auto ept_address = m_hsi_configuration->get_address();
   TLOG_DEBUG(0) << "ept reset hw cmd; a: " << ept_address;
