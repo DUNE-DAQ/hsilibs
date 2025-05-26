@@ -30,6 +30,12 @@
 namespace dunedaq {
 namespace hsilibs {
 
+enum
+{
+  TLVL_ENTER_EXIT_METHODS = 5
+};
+
+  
 FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name)
   : HSIEventSender(name)
   , m_thread(std::bind(&FakeHSIEventGeneratorModule::do_hsi_work, this, std::placeholders::_1))
