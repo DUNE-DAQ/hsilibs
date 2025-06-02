@@ -37,7 +37,6 @@ public:
   HSIDataHandlerModule& operator=(HSIDataHandlerModule&&) = delete;      ///< HSIDataHandlerModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
-  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
@@ -52,7 +51,7 @@ private:
   daqdataformats::run_number_t m_run_number;
 
   // Internal
-  std::unique_ptr<datahandlinglibs::DataHandlingConcept> m_readout_impl;
+  std::shared_ptr<datahandlinglibs::DataHandlingConcept> m_readout_impl;
 
   // Threading
   std::atomic<bool> m_run_marker;
