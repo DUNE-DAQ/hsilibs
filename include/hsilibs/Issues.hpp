@@ -18,9 +18,6 @@
 
 #include <string>
 
-// NOLINTNEXTLINE(build/define_used)
-#define TLVL_ENTER_EXIT_METHODS 10
-
 namespace dunedaq {
 
 ERS_DECLARE_ISSUE_BASE(hsilibs,

@@ -58,19 +58,17 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
                     rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
                     hsilibs::HSIFrameProcessor>>(m_run_marker);
   m_readout_impl->init(mcfg->get_dal<appmodel::DataHandlerModule>(get_name()));
+    
   if (m_readout_impl == nullptr)
   {
     TLOG() << get_name() << "Initialize HSIDataHandlerModule FAILED! ";
     throw datahandlinglibs::FailedReadoutInitialization(ERS_HERE, get_name(), "OKS Config"); // 4 json ident
   }
+
+  register_node( "data_handler", m_readout_impl);
+  
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
-
-// void
-// HSIDataHandlerModule::get_info(opmonlib::InfoCollector& ci, int level)
-// {
-//   m_readout_impl->get_info(ci, level);
-// }
 
 void
 HSIDataHandlerModule::do_conf(const data_t& args)
