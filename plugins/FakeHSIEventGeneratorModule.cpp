@@ -80,6 +80,17 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ConfigurationManager> 
     }
   }
 
+  // 07-Jul-2025, KAB: added the fetching of the TimeSync connection information
+  // (and the assignment of the TimeSync Receiver) here, now that we have the
+  // TimeSync connection defined in the configuration.  (Previously, the creation
+  // of the TimeSync receiver was done in the 'start' method, and it used a hard-coded
+  // wildcard in the connection name lookup.)
+  for (auto con : mdal->get_inputs()) {
+    if (con->get_data_type() == datatype_to_string<dfmessages::TimeSync>()) {
+      m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(con->UID());
+    }
+  }
+
   m_params = mdal->get_configuration();
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
@@ -137,7 +148,6 @@ FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
 
   m_timestamp_estimator.reset(new utilities::TimestampEstimator(start_params.run, m_clock_frequency));
 
-  m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(".*");
   m_timesync_receiver->add_callback(
     std::bind(&utilities::TimestampEstimator::timesync_callback<dfmessages::TimeSync>,
               reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
