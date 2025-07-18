@@ -9,17 +9,16 @@
 
 #include "FakeHSIEventGeneratorModule.hpp"
 
-#include "utilities/Issues.hpp"
-
-#include "dfmessages/HSIEvent.hpp"
 #include "appmodel/FakeHSIEventGeneratorModule.hpp"
+#include "confmodel/Connection.hpp"
+#include "confmodel/DaqModule.hpp"
+#include "confmodel/DetectorConfig.hpp"
+#include "confmodel/Session.hpp"
+#include "dfmessages/HSIEvent.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "confmodel/DaqModule.hpp"
-#include "confmodel/Connection.hpp"
-#include "confmodel/Session.hpp"
-#include "confmodel/DetectorConfig.hpp"
 #include "rcif/cmd/Nljs.hpp"
+#include "utilities/Issues.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -35,7 +34,6 @@ enum
   TLVL_ENTER_EXIT_METHODS = 5
 };
 
-  
 FakeHSIEventGeneratorModule::FakeHSIEventGeneratorModule(const std::string& name)
   : HSIEventSender(name)
   , m_thread(std::bind(&FakeHSIEventGeneratorModule::do_hsi_work, this, std::placeholders::_1))
@@ -67,7 +65,8 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ConfigurationManager> 
   HSIEventSender::init(mcfg);
 
   m_clock_frequency = mcfg->session()->get_detector_configuration()->get_clock_speed_hz();
-  auto mdal = mcfg->get_dal<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
+  auto mdal =
+    mcfg->get_dal<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
   if (!mdal) {
     throw appfwk::CommandFailed(ERS_HERE, "init", get_name(), "Unable to retrieve configuration object");
@@ -146,11 +145,11 @@ FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   auto start_params = obj.get<rcif::cmd::StartParams>();
 
-  m_timestamp_estimator.reset(new utilities::TimestampEstimator(start_params.run, m_clock_frequency));
+  m_timestamp_estimator.reset(new utilities::TimestampEstimatorTimeSync(start_params.run, m_clock_frequency));
 
   m_timesync_receiver->add_callback(
-    std::bind(&utilities::TimestampEstimator::timesync_callback<dfmessages::TimeSync>,
-              reinterpret_cast<utilities::TimestampEstimator*>(m_timestamp_estimator.get()),
+    std::bind(&utilities::TimestampEstimatorTimeSync::timesync_callback<dfmessages::TimeSync>,
+              reinterpret_cast<utilities::TimestampEstimatorTimeSync*>(m_timestamp_estimator.get()),
               std::placeholders::_1));
 
   TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_active_trigger_rate.load() << ", "
@@ -198,7 +197,7 @@ FakeHSIEventGeneratorModule::do_stop(const nlohmann::json& /*args*/)
   TLOG() << get_name() << ": received " << m_timestamp_estimator->get_received_timesync_count()
          << " TimeSync messages.";
 
-  m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
+  m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimatorTimeSync dtor
 
   m_active_trigger_rate.store(m_trigger_rate.load());
   m_event_period.store(1.e6 / m_active_trigger_rate.load());

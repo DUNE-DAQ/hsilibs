@@ -9,11 +9,11 @@
 
 #include "hsilibs/HSIEventSender.hpp"
 
-#include "utilities/TimestampEstimator.hpp"
+#include "utilities/TimestampEstimatorTimeSync.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "daqdataformats/Types.hpp"
 #include "appmodel/FakeHSIEventGeneratorConf.hpp"
+#include "daqdataformats/Types.hpp"
 #include "dfmessages/TimeSync.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
@@ -42,14 +42,17 @@ public:
    */
   explicit FakeHSIEventGeneratorModule(const std::string& name);
 
-  FakeHSIEventGeneratorModule(const FakeHSIEventGeneratorModule&) = delete; ///< FakeHSIEventGeneratorModule is not copy-constructible
+  FakeHSIEventGeneratorModule(const FakeHSIEventGeneratorModule&) =
+    delete; ///< FakeHSIEventGeneratorModule is not copy-constructible
   FakeHSIEventGeneratorModule& operator=(const FakeHSIEventGeneratorModule&) =
-    delete;                                                ///< FakeHSIEventGeneratorModule is not copy-assignable
-  FakeHSIEventGeneratorModule(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-constructible
-  FakeHSIEventGeneratorModule& operator=(FakeHSIEventGeneratorModule&&) = delete; ///< FakeHSIEventGeneratorModule is not move-assignable
+    delete; ///< FakeHSIEventGeneratorModule is not copy-assignable
+  FakeHSIEventGeneratorModule(FakeHSIEventGeneratorModule&&) =
+    delete; ///< FakeHSIEventGeneratorModule is not move-constructible
+  FakeHSIEventGeneratorModule& operator=(FakeHSIEventGeneratorModule&&) =
+    delete; ///< FakeHSIEventGeneratorModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
-  //void get_info(opmonlib::InfoCollector& ci, int level) override;
+  // void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
   // Commands
@@ -59,7 +62,7 @@ private:
   void do_scrap(const nlohmann::json& obj) override;
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
-  
+
   void do_hsi_work(std::atomic<bool>&);
   dunedaq::utilities::WorkerThread m_thread;
 
@@ -69,7 +72,7 @@ private:
   std::atomic<daqdataformats::run_number_t> m_run_number;
 
   // Helper class for estimating DAQ time
-  std::unique_ptr<utilities::TimestampEstimator> m_timestamp_estimator;
+  std::unique_ptr<utilities::TimestampEstimatorTimeSync> m_timestamp_estimator;
 
   // Random Generatior
   std::default_random_engine m_random_generator;
@@ -79,10 +82,10 @@ private:
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
   const appmodel::FakeHSIEventGeneratorConf* m_params;
-  uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
+  uint64_t m_clock_frequency; // NOLINT(build/unsigned)
   std::atomic<float> m_trigger_rate;
   std::atomic<float> m_active_trigger_rate;
-  std::atomic<uint64_t> m_event_period;           // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_event_period; // NOLINT(build/unsigned)
   int64_t m_timestamp_offset;
 
   uint32_t m_hsi_device_id;            // NOLINT(build/unsigned)
