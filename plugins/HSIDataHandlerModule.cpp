@@ -71,7 +71,7 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 }
 
 void
-HSIDataHandlerModule::do_conf(const data_t& args)
+HSIDataHandlerModule::do_conf(const CommandData_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_conf() method";
   m_readout_impl->conf(args);
@@ -80,7 +80,7 @@ HSIDataHandlerModule::do_conf(const data_t& args)
 }
 
 void
-HSIDataHandlerModule::do_scrap(const data_t& args)
+HSIDataHandlerModule::do_scrap(const CommandData_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
   m_readout_impl->scrap(args);
@@ -88,7 +88,7 @@ HSIDataHandlerModule::do_scrap(const data_t& args)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_scrap() method";
 }
 void
-HSIDataHandlerModule::do_start(const data_t& args)
+HSIDataHandlerModule::do_start(const CommandData_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   m_run_marker.store(true);
@@ -102,7 +102,7 @@ HSIDataHandlerModule::do_start(const data_t& args)
 }
 
 void
-HSIDataHandlerModule::do_stop(const data_t& args)
+HSIDataHandlerModule::do_stop(const CommandData_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_run_marker.store(false);
@@ -112,7 +112,7 @@ HSIDataHandlerModule::do_stop(const data_t& args)
 }
 
 void
-HSIDataHandlerModule::do_record(const data_t& args)
+HSIDataHandlerModule::do_record(const CommandData_t& args)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_issue_recording() method";
   m_readout_impl->record(args);

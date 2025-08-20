@@ -64,7 +64,7 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ConfigurationManager> 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
   HSIEventSender::init(mcfg);
 
-  m_clock_frequency = mcfg->session()->get_detector_configuration()->get_clock_speed_hz();
+  m_clock_frequency = mcfg->get_session()->get_detector_configuration()->get_clock_speed_hz();
   auto mdal =
     mcfg->get_dal<appmodel::FakeHSIEventGeneratorModule>(get_name()); // Only need generic DaqModule for output
 
@@ -110,7 +110,7 @@ FakeHSIEventGeneratorModule::init(std::shared_ptr<appfwk::ConfigurationManager> 
 // }
 
 void
-FakeHSIEventGeneratorModule::do_configure(const nlohmann::json& /*obj*/)
+FakeHSIEventGeneratorModule::do_configure(const CommandData_t& /*obj*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
@@ -140,7 +140,7 @@ FakeHSIEventGeneratorModule::do_configure(const nlohmann::json& /*obj*/)
 }
 
 void
-FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
+FakeHSIEventGeneratorModule::do_start(const CommandData_t& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   auto start_params = obj.get<rcif::cmd::StartParams>();
@@ -188,7 +188,7 @@ FakeHSIEventGeneratorModule::do_start(const nlohmann::json& obj)
 }
 
 void
-FakeHSIEventGeneratorModule::do_stop(const nlohmann::json& /*args*/)
+FakeHSIEventGeneratorModule::do_stop(const CommandData_t& /*args*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
@@ -209,7 +209,7 @@ FakeHSIEventGeneratorModule::do_stop(const nlohmann::json& /*args*/)
 }
 
 void
-FakeHSIEventGeneratorModule::do_scrap(const nlohmann::json& /*args*/)
+FakeHSIEventGeneratorModule::do_scrap(const CommandData_t& /*args*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_scrap() method";

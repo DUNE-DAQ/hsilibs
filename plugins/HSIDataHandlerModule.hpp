@@ -40,11 +40,11 @@ public:
 
 private:
   // Commands
-  void do_conf(const data_t& /*args*/);
-  void do_scrap(const data_t& /*args*/);
-  void do_start(const data_t& /*args*/);
-  void do_stop(const data_t& /*args*/);
-  void do_record(const data_t& /*args*/);
+  void do_conf(const CommandData_t& /*args*/);
+  void do_scrap(const CommandData_t& /*args*/);
+  void do_start(const CommandData_t& /*args*/);
+  void do_stop(const CommandData_t& /*args*/);
+  void do_record(const CommandData_t& /*args*/);
 
   // Configuration
   bool m_configured;

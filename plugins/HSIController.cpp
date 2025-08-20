@@ -65,7 +65,7 @@ HSIController::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 }
 
 void
-HSIController::do_configure(const nlohmann::json& data)
+HSIController::do_configure(const CommandData_t& data)
 {
   TimingController::do_configure(data);
 
@@ -90,20 +90,20 @@ HSIController::do_configure(const nlohmann::json& data)
 }
 
 void
-HSIController::do_start(const nlohmann::json& data)
+HSIController::do_start(const CommandData_t& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
   do_hsi_start(data);
 }
 
 void
-HSIController::do_stop(const nlohmann::json& data)
+HSIController::do_stop(const CommandData_t& data)
 {
   do_hsi_stop(data);
 }
 
 void
-HSIController::do_scrap(const nlohmann::json& data)
+HSIController::do_scrap(const CommandData_t& data)
 {
   m_thread.stop_working_thread();
   scrap_uhal();
@@ -116,7 +116,7 @@ HSIController::do_scrap(const nlohmann::json& data)
 }
 
 void
-HSIController::send_configure_hardware_commands(const nlohmann::json& data)
+HSIController::send_configure_hardware_commands(const CommandData_t& data)
 {
   if (m_control_hardware_io)
   {
@@ -130,7 +130,7 @@ HSIController::send_configure_hardware_commands(const nlohmann::json& data)
 }
 
 void
-HSIController::do_io_reset(const nlohmann::json& )
+HSIController::do_io_reset(const CommandData_t&)
 {
   auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
 
@@ -154,7 +154,7 @@ HSIController::do_io_reset(const nlohmann::json& )
 }
 
 void
-HSIController::do_endpoint_enable(const nlohmann::json& /*data*/)
+HSIController::do_endpoint_enable(const CommandData_t& /*data*/)
 {
   auto ept_address = m_hsi_configuration->get_address();
   TLOG_DEBUG(0) << "ept enable hw cmd; a: " << ept_address;
@@ -166,7 +166,7 @@ HSIController::do_endpoint_enable(const nlohmann::json& /*data*/)
 }
 
 void
-HSIController::do_endpoint_disable(const nlohmann::json& /*data*/)
+HSIController::do_endpoint_disable(const CommandData_t& /*data*/)
 {
   TLOG_DEBUG(0) << "ept disable hw cmd";
 
@@ -176,7 +176,7 @@ HSIController::do_endpoint_disable(const nlohmann::json& /*data*/)
 }
 
 void
-HSIController::do_endpoint_reset(const nlohmann::json& /*data*/)
+HSIController::do_endpoint_reset(const CommandData_t& /*data*/)
 {
   auto ept_address = m_hsi_configuration->get_address();
   TLOG_DEBUG(0) << "ept reset hw cmd; a: " << ept_address;

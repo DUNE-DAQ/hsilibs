@@ -65,7 +65,7 @@ HSIReadout::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 }
 
 void
-HSIReadout::do_configure(const nlohmann::json& /*data*/)
+HSIReadout::do_configure(const CommandData_t& /*data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
@@ -91,7 +91,7 @@ HSIReadout::do_configure(const nlohmann::json& /*data*/)
 }
 
 void
-HSIReadout::do_start(const nlohmann::json& data)
+HSIReadout::do_start(const CommandData_t& data)
 {
   TLOG() << get_name() << ": Entering do_start() method";
   auto start_params = data.get<rcif::cmd::StartParams>();
@@ -102,7 +102,7 @@ HSIReadout::do_start(const nlohmann::json& data)
 }
 
 void
-HSIReadout::do_stop(const nlohmann::json& /*data*/)
+HSIReadout::do_stop(const CommandData_t& /*data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
@@ -111,7 +111,7 @@ HSIReadout::do_stop(const nlohmann::json& /*data*/)
 }
 
 void
-HSIReadout::do_scrap(const nlohmann::json& /*data*/)
+HSIReadout::do_scrap(const CommandData_t& /*data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_scrap() method";
   scrap_uhal();
