@@ -59,17 +59,17 @@ protected:
   void gather_monitor_data(std::atomic<bool>& running_flag);
 
   // Commands
-  void do_configure(const nlohmann::json& data) override;
-  void do_start(const nlohmann::json& data) override;
-  void do_stop(const nlohmann::json& data) override;
-  void do_scrap(const nlohmann::json& data) override;
-  void send_configure_hardware_commands(const nlohmann::json& data) override;
+  void do_configure(const CommandData_t& data) override;
+  void do_start(const CommandData_t& data) override;
+  void do_stop(const CommandData_t& data) override;
+  void do_scrap(const CommandData_t& data) override;
+  void send_configure_hardware_commands(const CommandData_t& data) override;
 
   // overriding these to talk directly to hw
-  void do_io_reset(const nlohmann::json& data) override;
-  void do_endpoint_enable(const nlohmann::json& data) override;
-  void do_endpoint_disable(const nlohmann::json& data) override;
-  void do_endpoint_reset(const nlohmann::json& data) override;
+  void do_io_reset(const CommandData_t& data) override;
+  void do_endpoint_enable(const CommandData_t& data) override;
+  void do_endpoint_disable(const CommandData_t& data) override;
+  void do_endpoint_reset(const CommandData_t& data) override;
 
   // hsi commands
   void do_hsi_reset(const nlohmann::json&);

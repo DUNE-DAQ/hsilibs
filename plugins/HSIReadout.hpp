@@ -59,10 +59,10 @@ public:
 private:
   // Commands
   const appmodel::HSIReadoutConf* m_params;
-  void do_configure(const nlohmann::json& data) override;
-  void do_start(const nlohmann::json& data) override;
-  void do_stop(const nlohmann::json& data) override;
-  void do_scrap(const nlohmann::json& data) override;
+  void do_configure(const CommandData_t& data) override;
+  void do_start(const CommandData_t& data) override;
+  void do_stop(const CommandData_t& data) override;
+  void do_scrap(const CommandData_t& data) override;
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
   

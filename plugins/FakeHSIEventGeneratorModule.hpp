@@ -56,10 +56,10 @@ public:
 
 private:
   // Commands
-  void do_configure(const nlohmann::json& obj) override;
-  void do_start(const nlohmann::json& obj) override;
-  void do_stop(const nlohmann::json& obj) override;
-  void do_scrap(const nlohmann::json& obj) override;
+  void do_configure(const CommandData_t& obj) override;
+  void do_start(const CommandData_t& obj) override;
+  void do_stop(const CommandData_t& obj) override;
+  void do_scrap(const CommandData_t& obj) override;
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
 

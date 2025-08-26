@@ -48,10 +48,10 @@ public:
 
 protected:
   // Commands
-  virtual void do_configure(const nlohmann::json& obj) = 0;
-  virtual void do_start(const nlohmann::json& obj) = 0;
-  virtual void do_stop(const nlohmann::json& obj) = 0;
-  virtual void do_scrap(const nlohmann::json& obj) = 0;
+  virtual void do_configure(const CommandData_t& obj) = 0;
+  virtual void do_start(const CommandData_t& obj) = 0;
+  virtual void do_stop(const CommandData_t& obj) = 0;
+  virtual void do_scrap(const CommandData_t& obj) = 0;
 
   // Configuration
   std::string m_hsievent_send_connection;
