@@ -169,12 +169,12 @@ def test_data_files(run_nanorc):
     if not the_global_timing_session_is_running:
         print(f"The global timing session does not appear to be running on this computer ({hostname}).")
         print("    Please check whether it is, and start it, if needed.")
-        var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
-        var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
-        var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
-        print(f"{var1}{var2}{var3}")
-        print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
-        print("       nanotimingrc --partition-number 4 iceberg_integtest_timing_session_config iceberg-integtest-timing-session boot conf wait 1200 scrap terminate")
+        #var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
+        #var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
+        #var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
+        #print(f"{var1}{var2}{var3}")
+        #print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
+        #print("       nanotimingrc --partition-number 4 iceberg_integtest_timing_session_config iceberg-integtest-timing-session boot conf wait 1200 scrap terminate")
         pytest.skip("The global timing session is not running.")
     if not the_connection_server_is_running:
         pytest.skip(f"The connectivity service must be running for this test. Please confirm that it is being started as part of the timing session for this test.")
