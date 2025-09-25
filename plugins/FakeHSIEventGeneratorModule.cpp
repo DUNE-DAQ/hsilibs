@@ -145,6 +145,8 @@ FakeHSIEventGeneratorModule::do_start(const CommandData_t& obj)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   auto start_params = obj.get<rcif::cmd::StartParams>();
 
+  m_start_promise = std::make_unique<std::promise<void>>();
+
   m_timestamp_estimator.reset(new utilities::TimestampEstimatorTimeSync(start_params.run, m_clock_frequency));
 
   m_timesync_receiver->add_callback(
@@ -183,6 +185,7 @@ FakeHSIEventGeneratorModule::do_start(const CommandData_t& obj)
   }
 
   m_thread.start_working_thread("fake-tsd-gen");
+  m_start_promise->set_value();  
   TLOG() << get_name() << " successfully started";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_start() method";
 }
@@ -198,6 +201,8 @@ FakeHSIEventGeneratorModule::do_stop(const CommandData_t& /*args*/)
          << " TimeSync messages.";
 
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimatorTimeSync dtor
+
+  m_start_promise.reset(); 
 
   m_active_trigger_rate.store(m_trigger_rate.load());
   m_event_period.store(1.e6 / m_active_trigger_rate.load());
@@ -245,8 +250,11 @@ FakeHSIEventGeneratorModule::do_hsi_work(std::atomic<bool>& running_flag)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering generate_hsievents() method";
 
-  // Wait for there to be a valid timestsamp estimate before we start
-  // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
+  if (m_start_promise) {
+    auto start_future = m_start_promise->get_future();
+    start_future.wait(); // This blocks until m_start_promise->set_value() is called.
+  }
+
   if (m_timestamp_estimator.get() != nullptr && m_timestamp_estimator->wait_for_valid_timestamp(running_flag) ==
                                                   utilities::TimestampEstimatorBase::kInterrupted) {
     ers::error(utilities::FailedToGetTimestampEstimate(ERS_HERE));
