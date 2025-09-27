@@ -1,3 +1,11 @@
+# *** NB, 24-Sep-2025, KAB:  I have made some minimal changes to get this integtest
+# *** running again, at least as far as getting it to complain that the conditions
+# *** for the test are not right.  I haven't yet made changes that would get it to
+# *** run correctly if the conditions were right (e.g. on an ICEBERG computer, etc.)
+# *** Truthfully, I expect there to be work to understand how we will need to control
+# *** the timing system electronics (TLU) and whether we need to manually start a
+# *** ConnectivityService instance.
+
 import pytest
 import os
 import re
@@ -7,8 +15,12 @@ import urllib.request
 
 import integrationtest.data_file_checks as data_file_checks
 import integrationtest.log_file_checks as log_file_checks
-import integrationtest.config_file_gen as config_file_gen
-import integrationtest.dro_map_gen as dro_map_gen
+import integrationtest.data_classes as data_classes
+
+import functools
+print = functools.partial(print, flush=True)
+
+pytest_plugins = "integrationtest.integrationtest_drunc"
 
 my_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,64 +79,55 @@ else:
 # file. They're read by the "fixtures" in conftest.py to determine how
 # to run the config generation and nanorc
 
-# The name of the python module for the config generation
-confgen_name="fddaqconf_gen"
+object_databases = ["config/daqsystemtest/integrationtest-objects.data.xml"]
 
-# The arguments to pass to the config generator, excluding the json
-# output directory (the test framework handles that)
-dro_map_contents = dro_map_gen.generate_dromap_contents(number_of_data_producers, number_of_readout_apps)
+conf_dict = data_classes.drunc_config()
+conf_dict.dro_map_config.n_streams = number_of_data_producers
+conf_dict.dro_map_config.n_apps = number_of_readout_apps
+conf_dict.op_env = "integtest"
+conf_dict.session = "icebergrealhsi"
+conf_dict.tpg_enabled = False
+conf_dict.use_fakedataprod = True
 
-conf_dict = config_file_gen.get_default_config_dict()
-conf_dict["boot"]["use_connectivity_service"] = True
-conf_dict["boot"]["start_connectivity_service"] = False
-conf_dict["boot"]["connectivity_service_port"] = conn_svc_port
-conf_dict["detector"]["clock_speed_hz"] = 62500000
-conf_dict["readout"]["latency_buffer_size"] = 200000
-conf_dict["readout"]["use_fake_data_producers"] = True
-conf_dict["trigger"]["trigger_window_before_ticks"] = 1000
-conf_dict["trigger"]["trigger_window_after_ticks"] = 1000
-
-conf_dict["dataflow"]["apps"] = [] # Remove preconfigured dataflow0 app
-for df_app in range(number_of_dataflow_apps):
-    dfapp_conf = {}
-    dfapp_conf["app_name"] = f"dataflow{df_app}"
-    conf_dict["dataflow"]["apps"].append(dfapp_conf)
+conf_dict.config_substitutions.append(
+    data_classes.attribute_substitution(
+        obj_class="LatencyBuffer", updates={"size": 200000}
+    )
+)
 
 if we_are_running_on_an_iceberg_computer and the_global_timing_session_is_running and the_connection_server_is_running:
-    conf_dict["trigger"]["ttcm_s1"] = 128
-    conf_dict["trigger"]["hsi_trigger_type_passthrough"] = True
-    conf_dict["hsi"]["random_trigger_rate_hz"] = base_trigger_rate
-    conf_dict["hsi"]["control_hsi_hw"]= True
-    conf_dict["hsi"]["hsi_device_name"]= "BOREAS_TLU_ICEBERG"
-    conf_dict["hsi"]["hsi_source"] = 1
-    conf_dict["hsi"]["use_timing_hsi"] = True
-    conf_dict["hsi"]["use_fake_hsi"] = False
-    conf_dict["hsi"]["host_timing_hsi"] = timing_host
-    conf_dict["hsi"]["hsi_re_mask"] = 1
-    conf_dict["hsi"]["hsi_hw_connections_file"] = os.path.abspath(f"{my_dir}/../../daqsystemtest/config/timing_systems/connections.xml")
-    conf_dict["timing"]["timing_session_name"] = "iceberg-integtest-timing-session"
+    # FIXME / To-do:  24-Sep-2025, KAB, the following config params
+    # need to be converted to v5-style.
+    #conf_dict["trigger"]["ttcm_s1"] = 128
+    #conf_dict["trigger"]["hsi_trigger_type_passthrough"] = True
+    #conf_dict["hsi"]["random_trigger_rate_hz"] = base_trigger_rate
+    #conf_dict["hsi"]["control_hsi_hw"]= True
+    #conf_dict["hsi"]["hsi_device_name"]= "BOREAS_TLU_ICEBERG"
+    #conf_dict["hsi"]["hsi_source"] = 1
+    #conf_dict["hsi"]["use_timing_hsi"] = True
+    #conf_dict["hsi"]["use_fake_hsi"] = False
+    #conf_dict["hsi"]["host_timing_hsi"] = timing_host
+    #conf_dict["hsi"]["hsi_re_mask"] = 1
+    #conf_dict["hsi"]["hsi_hw_connections_file"] = os.path.abspath(f"{my_dir}/../../daqsystemtest/config/timing_systems/connections.xml")
+    #conf_dict["timing"]["timing_session_name"] = "iceberg-integtest-timing-session"
 
     trigger_factor_conf = copy.deepcopy(conf_dict)
-    trigger_factor_conf["hsi"]["random_trigger_rate_hz"] = base_trigger_rate*trigger_rate_factor
+    #trigger_factor_conf["hsi"]["random_trigger_rate_hz"] = base_trigger_rate*trigger_rate_factor
     confgen_arguments={"Base_Trigger_Rate": conf_dict,
                        "Trigger_Rate_with_Factor": trigger_factor_conf
                       }
 else:
-    conf_dict["daq_common"]["data_rate_slowdown_factor"] = 10
     confgen_arguments={"Invalid test conditions, cannot run test": conf_dict}
 
 # The commands to run in nanorc, as a list
 if we_are_running_on_an_iceberg_computer and the_global_timing_session_is_running and the_connection_server_is_running:
-    nanorc_command_list="integtest-session boot conf".split()
+    nanorc_command_list="boot conf".split()
     nanorc_command_list+="start 101 enable_triggers wait ".split() + [str(run_duration)] + "stop_run wait 2".split()
     nanorc_command_list+="start 102 wait 1 enable_triggers wait ".split() + [str(run_duration)] + "disable_triggers wait 1 stop_run".split()
     nanorc_command_list+="start_run 103 wait ".split() + [str(run_duration)] + "disable_triggers wait 1 drain_dataflow wait 1 stop_trigger_sources wait 1 stop wait 2".split()
     nanorc_command_list+="scrap terminate".split()
 else:
-    nanorc_command_list=["integtest-session", "wait", "1"]
-
-# Don't require the --frame-file option since we don't need it
-frame_file_required=False
+    nanorc_command_list=["wait", "1"]
 
 # The tests themselves
 
@@ -161,16 +164,17 @@ def test_log_files(run_nanorc):
 
 def test_data_files(run_nanorc):
     if not we_are_running_on_an_iceberg_computer:
+        print(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
         pytest.skip(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
     if not the_global_timing_session_is_running:
         print(f"The global timing session does not appear to be running on this computer ({hostname}).")
         print("    Please check whether it is, and start it, if needed.")
-        var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
-        var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
-        var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
-        print(f"{var1}{var2}{var3}")
-        print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
-        print("       nanotimingrc --partition-number 4 iceberg_integtest_timing_session_config iceberg-integtest-timing-session boot conf wait 1200 scrap terminate")
+        #var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
+        #var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
+        #var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
+        #print(f"{var1}{var2}{var3}")
+        #print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
+        #print("       nanotimingrc --partition-number 4 iceberg_integtest_timing_session_config iceberg-integtest-timing-session boot conf wait 1200 scrap terminate")
         pytest.skip("The global timing session is not running.")
     if not the_connection_server_is_running:
         pytest.skip(f"The connectivity service must be running for this test. Please confirm that it is being started as part of the timing session for this test.")
