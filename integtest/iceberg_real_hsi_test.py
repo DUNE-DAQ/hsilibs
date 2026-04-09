@@ -15,10 +15,12 @@ import urllib.request
 
 import integrationtest.data_file_checks as data_file_checks
 import integrationtest.log_file_checks as log_file_checks
+import integrationtest.basic_checks as basic_checks
 import integrationtest.data_classes as data_classes
+from integrationtest.verbosity_helper import IntegtestVerbosityLevels
 
 import functools
-print = functools.partial(print, flush=True)
+print = functools.partial(print, flush=True)  # always flush print() output
 
 pytest_plugins = "integrationtest.integrationtest_drunc"
 
@@ -77,7 +79,7 @@ else:
 
 # The next three variable declarations *must* be present as globals in the test
 # file. They're read by the "fixtures" in conftest.py to determine how
-# to run the config generation and nanorc
+# to run the config generation and drunc
 
 object_databases = ["config/daqsystemtest/integrationtest-objects.data.xml"]
 
@@ -119,40 +121,40 @@ if we_are_running_on_an_iceberg_computer and the_global_timing_session_is_runnin
 else:
     confgen_arguments={"Invalid test conditions, cannot run test": conf_dict}
 
-# The commands to run in nanorc, as a list
+# The commands to run in dunerc, as a list
 if we_are_running_on_an_iceberg_computer and the_global_timing_session_is_running and the_connection_server_is_running:
-    nanorc_command_list="boot conf".split()
-    nanorc_command_list+="start 101 enable_triggers wait ".split() + [str(run_duration)] + "stop_run wait 2".split()
-    nanorc_command_list+="start 102 wait 1 enable_triggers wait ".split() + [str(run_duration)] + "disable_triggers wait 1 stop_run".split()
-    nanorc_command_list+="start_run 103 wait ".split() + [str(run_duration)] + "disable_triggers wait 1 drain_dataflow wait 1 stop_trigger_sources wait 1 stop wait 2".split()
-    nanorc_command_list+="scrap terminate".split()
+    dunerc_command_list="boot conf".split()
+    dunerc_command_list+="start 101 enable_triggers wait ".split() + [str(run_duration)] + "stop_run wait 2".split()
+    dunerc_command_list+="start 102 wait 1 enable_triggers wait ".split() + [str(run_duration)] + "disable_triggers wait 1 stop_run".split()
+    dunerc_command_list+="start_run 103 wait ".split() + [str(run_duration)] + "disable_triggers wait 1 drain_dataflow wait 1 stop_trigger_sources wait 1 stop wait 2".split()
+    dunerc_command_list+="scrap terminate".split()
 else:
-    nanorc_command_list=["wait", "1"]
+    dunerc_command_list=["wait", "1"]
 
 # The tests themselves
 
-def test_nanorc_success(run_nanorc):
+def test_dunerc_success(run_dunerc, caplog):
     if not we_are_running_on_an_iceberg_computer:
+        print(f"\n\n\N{LARGE YELLOW CIRCLE} This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
         pytest.skip(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
     if not the_global_timing_session_is_running:
+        print(f"\n\n\N{LARGE YELLOW CIRCLE} The global timing session does not appear to be running on this computer ({hostname}).")
+        print("\N{LARGE YELLOW CIRCLE} Please check whether it is, and start it, if needed.")
+        #var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
+        #var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
+        #var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
+        #print(f"{var1}{var2}{var3}")
+        #print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
+        #print("       nanotimingrc --partition-number 4 iceberg_integtest_timing_session_config iceberg-integtest-timing-session boot conf wait 1200 scrap terminate")
         pytest.skip("The global timing session is not running.")
     if not the_connection_server_is_running:
+        print("\n\n\N{LARGE YELLOW CIRCLE} The connectivity service must be running for this test. Please confirm that it is being started as part of the timing session for this test.")
         pytest.skip(f"The connectivity service must be running for this test.")
 
-    # print the name of the current test
-    current_test=os.environ.get('PYTEST_CURRENT_TEST')
-    match_obj = re.search(r".*\[(.+)-run_.*rc.*\d].*", current_test)
-    if match_obj:
-        current_test = match_obj.group(1)
-    banner_line = re.sub(".", "=", current_test)
-    print(banner_line)
-    print(current_test)
-    print(banner_line)
+    # check for run control success, problems during pytest setup, etc.
+    basic_checks.basic_checks(run_dunerc, caplog, print_test_name=True)
 
-    # Check that nanorc completed correctly
-    assert run_nanorc.completed_process.returncode==0
-
-def test_log_files(run_nanorc):
+def test_log_files(run_dunerc):
     if not we_are_running_on_an_iceberg_computer:
         pytest.skip(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
     if not the_global_timing_session_is_running:
@@ -162,24 +164,16 @@ def test_log_files(run_nanorc):
 
     if check_for_logfile_errors:
         # Check that there are no warnings or errors in the log files
-        assert log_file_checks.logs_are_error_free(run_nanorc.log_files, True, True)
+        assert log_file_checks.logs_are_error_free(run_dunerc.log_files, True, True,
+                                                   verbosity_helper=run_dunerc.verbosity_helper)
 
-def test_data_files(run_nanorc):
+def test_data_files(run_dunerc):
     if not we_are_running_on_an_iceberg_computer:
-        print(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
         pytest.skip(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
     if not the_global_timing_session_is_running:
-        print(f"The global timing session does not appear to be running on this computer ({hostname}).")
-        print("    Please check whether it is, and start it, if needed.")
-        #var1="Hints: echo '{\"boot\": { \"use_connectivity_service\": true, \"start_connectivity_service\": true, \"connectivity_service_port\": 13579 }, \"timing_hardware_interface\": { \"host_thi\": \"" + timing_host + "\", \"firmware_type\": \"pdii\", \"timing_hw_connections_file\": \""
-        #var2=os.path.realpath(os.path.dirname(__file__) + "/../../daqsystemtest")
-        #var3="/config/timing_systems/connections.xml\" }, \"timing_master_controller\": { \"host_tmc\": \"" + timing_host + "\", \"master_device_name\": \"BOREAS_TLU_ICEBERG\" } }' >> iceberg_integtest_timing_config_input.json"
-        #print(f"{var1}{var2}{var3}")
-        #print("       daqconf_timing_gen --config ./iceberg_integtest_timing_config_input.json iceberg_integtest_timing_session_config")
-        #print("       nanotimingrc --partition-number 4 iceberg_integtest_timing_session_config iceberg-integtest-timing-session boot conf wait 1200 scrap terminate")
         pytest.skip("The global timing session is not running.")
     if not the_connection_server_is_running:
-        pytest.skip(f"The connectivity service must be running for this test. Please confirm that it is being started as part of the timing session for this test.")
+        pytest.skip(f"The connectivity service must be running for this test.")
 
     fragment_check_list=[]
     fragment_check_list.append(wibeth_frag_hsi_trig_params)
@@ -194,10 +188,10 @@ def test_data_files(run_nanorc):
         local_event_count_tolerance*=trigger_rate_factor
 
     # Run some tests on the output data files
-    assert len(run_nanorc.data_files)==expected_number_of_data_files
+    assert len(run_dunerc.data_files)==expected_number_of_data_files
 
-    for idx in range(len(run_nanorc.data_files)):
-        data_file=data_file_checks.DataFile(run_nanorc.data_files[idx])
+    for idx in range(len(run_dunerc.data_files)):
+        data_file=data_file_checks.DataFile(run_dunerc.data_files[idx], run_dunerc.verbosity_helper)
         assert data_file_checks.sanity_check(data_file)
         assert data_file_checks.check_file_attributes(data_file)
         assert data_file_checks.check_event_count(data_file, local_expected_event_count, local_event_count_tolerance)
