@@ -77,13 +77,9 @@ if the_global_timing_session_is_running:
 else:
     print(f"DEBUG: hostname is {hostname}, iceberg-computer flag is {we_are_running_on_an_iceberg_computer}, global-timing-running flag is {the_global_timing_session_is_running}, connection-server-running flag is {the_connection_server_is_running}.")
 
-# The next three variable declarations *must* be present as globals in the test
-# file. They're read by the "fixtures" in conftest.py to determine how
-# to run the config generation and drunc
 
-object_databases = ["config/daqsystemtest/integrationtest-objects.data.xml"]
-
-conf_dict = data_classes.drunc_config()
+conf_dict = data_classes.integtest_params_for_generated_dunedaq_config()
+conf_dict.object_databases = ["config/daqsystemtest/integrationtest-objects.data.xml"]
 conf_dict.dro_map_config.n_streams = number_of_data_producers
 conf_dict.dro_map_config.n_apps = number_of_readout_apps
 conf_dict.op_env = "integtest"
