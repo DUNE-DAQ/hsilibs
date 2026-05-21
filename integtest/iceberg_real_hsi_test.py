@@ -199,4 +199,11 @@ def test_data_files(run_dunerc):
 
 
 def test_cleanup(run_dunerc):
+    if not we_are_running_on_an_iceberg_computer:
+        pytest.skip(f"This computer ({hostname}) is not part of the ICEBERG DAQ cluster and therefore can not run this test.")
+    if not the_global_timing_session_is_running:
+        pytest.skip("The global timing session is not running.")
+    if not the_connection_server_is_running:
+        pytest.skip(f"The connectivity service must be running for this test.")
+
     utility_functions.remove_hdf5_files_if_requested(run_dunerc, this_test_requests_hdf5_file_removal=False)
