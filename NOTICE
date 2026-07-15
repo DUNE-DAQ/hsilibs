@@ -1,0 +1,6 @@
+This package is distributed under the GNU General Public License,
+version 3. See the LICENSE file for the full license text.
+
+This package uses (directly or otherwise) ipbus-software (including
+uHAL), which is distributed under the GNU General Public License,
+version 3.
