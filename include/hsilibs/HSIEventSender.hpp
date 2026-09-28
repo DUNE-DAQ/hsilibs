@@ -12,8 +12,8 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "dfmessages/HSIEvent.hpp"
-#include "utilities/WorkerThread.hpp"
 #include "iomanager/IOManager.hpp"
+#include "utilities/WorkerThread.hpp"
 #include <ers/Issue.hpp>
 
 #include <bitset>

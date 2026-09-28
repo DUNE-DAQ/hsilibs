@@ -41,7 +41,7 @@ ERS_DECLARE_ISSUE_BASE(hsilibs,
                        ((std::string)name),
                        ((std::string)conn))
 
-ERS_DECLARE_ISSUE(hsilibs,                         ///< Namespace
+ERS_DECLARE_ISSUE(hsilibs,                            ///< Namespace
                   UHALIssue,                          ///< Issue class name
                   " UHAL related issue: " << message, ///< Message
                   ((std::string)message)              ///< Message parameters
@@ -78,7 +78,8 @@ ERS_DECLARE_ISSUE_BASE(hsilibs,
 ERS_DECLARE_ISSUE_BASE(hsilibs,
                        UHALDeviceClassIssue,
                        hsilibs::UHALDeviceNodeIssue,
-                       " Failed to cast device " << device << " to type " << type << " where actual_type type is " << actual_type,
+                       " Failed to cast device " << device << " to type " << type << " where actual_type type is "
+                                                 << actual_type,
                        ((std::string)message),
                        ((std::string)device)((std::string)type)((std::string)actual_type))
 

@@ -11,9 +11,9 @@
 #ifndef HSILIBS_INCLUDE_HSILIBS_TYPES_HPP_
 #define HSILIBS_INCLUDE_HSILIBS_TYPES_HPP_
 
-#include "detdataformats/HSIFrame.hpp"
 #include "daqdataformats/FragmentHeader.hpp"
 #include "daqdataformats/SourceID.hpp"
+#include "detdataformats/HSIFrame.hpp"
 #include "serialization/Serialization.hpp"
 
 #include <algorithm> // For std::min
@@ -36,15 +36,12 @@ class HSI_FRAME_STRUCT
 {
 public:
   using FrameType = HSI_FRAME_STRUCT;
-  
+
   dunedaq::detdataformats::HSIFrame frame;
 
   // comparable based on start timestamp
-  bool operator<(const FrameType& other) const
-  {
-    return this->get_timestamp() < other.get_timestamp() ? true : false;
-  }
-  
+  bool operator<(const FrameType& other) const { return this->get_timestamp() < other.get_timestamp() ? true : false; }
+
   uint64_t get_timestamp() const // NOLINT(build/unsigned)
   {
     return frame.get_timestamp(); // NOLINT
@@ -55,7 +52,7 @@ public:
     frame.set_timestamp(ts);
   }
 
-  void fake_timestamps(uint64_t first_timestamp, uint64_t /*offset*/= 0 ) // NOLINT(build/unsigned)
+  void fake_timestamps(uint64_t first_timestamp, uint64_t /*offset*/ = 0) // NOLINT(build/unsigned)
   {
     frame.set_timestamp(first_timestamp);
   }
@@ -76,8 +73,7 @@ public:
   static const constexpr uint64_t expected_tick_difference = 1; // NOLINT(build/unsigned)
 };
 
-static_assert(sizeof(struct HSI_FRAME_STRUCT) == HSI_FRAME_STRUCT_SIZE,
-              "Check your assumptions on HSI_FRAME_STRUCT");
+static_assert(sizeof(struct HSI_FRAME_STRUCT) == HSI_FRAME_STRUCT_SIZE, "Check your assumptions on HSI_FRAME_STRUCT");
 
 } // namespace hsilibs
 

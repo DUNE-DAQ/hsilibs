@@ -11,10 +11,10 @@
 #include "datahandlinglibs/DataHandlingIssues.hpp"
 #include "datahandlinglibs/models/TaskRawDataProcessorModel.hpp"
 
-#include "hsilibs/Types.hpp"
-#include "logging/Logging.hpp"
 #include "datahandlinglibs/FrameErrorRegistry.hpp"
 #include "datahandlinglibs/ReadoutLogging.hpp"
+#include "hsilibs/Types.hpp"
+#include "logging/Logging.hpp"
 
 #include <atomic>
 #include <functional>
@@ -33,16 +33,17 @@ public:
   using timestamp_t = std::uint64_t; // NOLINT(build/unsigned)
 
   // Constructor
-  explicit HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry, bool /*post_processing*/)
+  explicit HSIFrameProcessor(std::unique_ptr<datahandlinglibs::FrameErrorRegistry>& error_registry,
+                             bool /*post_processing*/)
     : TaskRawDataProcessorModel<hsilibs::HSI_FRAME_STRUCT>(error_registry, false)
     , m_previous_ts(0)
-  {}
+  {
+  }
 
   // Override config for pipeline setup
   void conf(const appmodel::DataHandlerModule* conf) override;
 
 protected:
-
   /**
    * Pipeline Stage 1.: Check proper timestamp increments in HSI frame
    * */

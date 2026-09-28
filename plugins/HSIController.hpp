@@ -12,8 +12,8 @@
 #ifndef HSILIBS_PLUGINS_HSICONTROLLER_HPP_
 #define HSILIBS_PLUGINS_HSICONTROLLER_HPP_
 
-#include "hsilibs/dal/HSIControllerConf.hpp"
 #include "hsilibs/dal/HSIController.hpp"
+#include "hsilibs/dal/HSIControllerConf.hpp"
 
 #include "timinglibs/TimingEndpointControllerBase.hpp"
 #include "timinglibs/TimingHardwareInterface.hpp"
@@ -34,7 +34,9 @@ namespace hsilibs {
  * @brief HSIController is a DAQModule implementation that
  * provides that provides a control interface for a HSI endpoint.
  */
-class HSIController : public dunedaq::timinglibs::TimingEndpointControllerBase, dunedaq::timinglibs::TimingHardwareInterface
+class HSIController
+  : public dunedaq::timinglibs::TimingEndpointControllerBase
+  , dunedaq::timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -49,12 +51,13 @@ public:
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
 
   void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
+
 protected:
   const hsilibs::dal::HSIControllerConf* m_hsi_configuration;
 
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
   bool m_control_hardware_io;
-  uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
+  uint64_t m_clock_frequency; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread m_thread;
   void gather_monitor_data(std::atomic<bool>& running_flag);
 

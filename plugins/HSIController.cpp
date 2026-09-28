@@ -47,13 +47,13 @@ HSIController::HSIController(const std::string& name)
   register_command("start", &HSIController::do_start);
   register_command("stop_trigger_sources", &HSIController::do_stop);
   register_command("scrap", &HSIController::do_scrap);
-  
+
   // hsi hardware commands
-  //register_command("hsi_reset", &HSIController::do_hsi_reset);
-  //register_command("hsi_configure", &HSIController::do_hsi_configure);
-  //register_command("hsi_start", &HSIController::do_hsi_start);
-  //register_command("hsi_stop", &HSIController::do_hsi_stop);
-  //register_command("hsi_print_status", &HSIController::do_hsi_print_status);
+  // register_command("hsi_reset", &HSIController::do_hsi_reset);
+  // register_command("hsi_configure", &HSIController::do_hsi_configure);
+  // register_command("hsi_start", &HSIController::do_hsi_start);
+  // register_command("hsi_stop", &HSIController::do_hsi_stop);
+  // register_command("hsi_print_status", &HSIController::do_hsi_print_status);
 }
 
 void
@@ -73,8 +73,7 @@ HSIController::do_configure(const CommandData_t& data)
 
   configure_uhal(m_hsi_configuration); // configure hw ipbus connection
 
-  try
-  {
+  try {
     m_hsi_device = std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(m_timing_device));
   } catch (const uhal::exception::ConnectionUIDDoesNotExist& exception) {
     std::stringstream message;
@@ -108,8 +107,8 @@ HSIController::do_scrap(const CommandData_t& data)
   m_thread.stop_working_thread();
   scrap_uhal();
 
-  m_timing_device="";
-  m_control_hardware_io=false;
+  m_timing_device = "";
+  m_control_hardware_io = false;
   m_endpoint_state = 0x0;
 
   TimingController::do_scrap(data);
@@ -118,8 +117,7 @@ HSIController::do_scrap(const CommandData_t& data)
 void
 HSIController::send_configure_hardware_commands(const CommandData_t& data)
 {
-  if (m_control_hardware_io)
-  {
+  if (m_control_hardware_io) {
     m_thread.stop_working_thread();
     do_io_reset(data);
     m_thread.start_working_thread("gather-hsi-info");
@@ -139,12 +137,9 @@ HSIController::do_io_reset(const CommandData_t&)
     TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " soft io reset";
     design->soft_reset_io();
   } else if (!clock_config.empty()) {
-    TLOG_DEBUG(0) << get_name() << ": " << m_timing_device
-                  << " io reset, with supplied clk file: " << clock_config;
+    TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " io reset, with supplied clk file: " << clock_config;
     design->reset_io(clock_config);
-  }
-  else
-  {
+  } else {
     TLOG_DEBUG(0) << get_name() << ": " << m_timing_device
                   << " io reset, with supplied clk source: " << m_hsi_configuration->get_clock_source();
     design->reset_io(static_cast<timing::ClockSource>(m_hsi_configuration->get_clock_source()));
@@ -218,19 +213,17 @@ HSIController::do_hsi_configure(double random_rate)
     throw timinglibs::InvalidTriggerRateValue(ERS_HERE, random_rate);
   }
 
-  TLOG_DEBUG(0) << get_name() << " Setting emulated event rate [Hz] to: "
-         << random_rate;
+  TLOG_DEBUG(0) << get_name() << " Setting emulated event rate [Hz] to: " << random_rate;
 
   auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
-  design->configure_hsi(
-    data_source, rising_edge_mask, falling_edge_mask, invert_edge_mask, random_rate);
+  design->configure_hsi(data_source, rising_edge_mask, falling_edge_mask, invert_edge_mask, random_rate);
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
 void
 HSIController::do_hsi_start(const nlohmann::json&)
 {
-   TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi start";
+  TLOG_DEBUG(0) << get_name() << ": " << m_timing_device << " hsi start";
 
   auto design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
   design->get_hsi_node().start_hsi();
@@ -299,28 +292,23 @@ HSIController::process_device_info(nlohmann::json info)
   auto inv_mask = hsi_info.inv_mask;
   auto data_source = hsi_info.source;
 
-  bool hsi_good = buffer_enabled && !buffer_error && !buffer_warning
-                  && re_mask == m_hsi_configuration->get_rising_edge_mask()
-                  && fe_mask == m_hsi_configuration->get_falling_edge_mask()
-                  && inv_mask == m_hsi_configuration->get_invert_edge_mask()
-                  && data_source == m_hsi_configuration->get_data_source();
+  bool hsi_good =
+    buffer_enabled && !buffer_error && !buffer_warning && re_mask == m_hsi_configuration->get_rising_edge_mask() &&
+    fe_mask == m_hsi_configuration->get_falling_edge_mask() &&
+    inv_mask == m_hsi_configuration->get_invert_edge_mask() && data_source == m_hsi_configuration->get_data_source();
 
-  TLOG_DEBUG(0) << "EPT good: " << ept_good << ", HSI good: " << hsi_good << ", infos received: " << m_device_infos_received_count;
+  TLOG_DEBUG(0) << "EPT good: " << ept_good << ", HSI good: " << hsi_good
+                << ", infos received: " << m_device_infos_received_count;
 
   TLOG_DEBUG(0) << "device data: " << info.dump();
 
-  if (ept_good && hsi_good)
-  {
-    if (!m_device_ready)
-    {
+  if (ept_good && hsi_good) {
+    if (!m_device_ready) {
       m_device_ready = true;
       TLOG_DEBUG(2) << "HSI device became ready";
     }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
+  } else {
+    if (m_device_ready) {
       m_device_ready = false;
       TLOG_DEBUG(2) << "HSI device no longer ready";
     }
@@ -334,8 +322,7 @@ HSIController::gather_monitor_data(std::atomic<bool>& running_flag)
 
     timing::timingfirmwareinfo::TimingDeviceInfo device_info;
     // collect the data from the hardware
-    try
-    {
+    try {
       auto design = cast_timing_device<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""), m_timing_device);
       design->get_info(device_info);
     } catch (const std::exception& excpt) {
