@@ -260,7 +260,7 @@ HSIReadout::do_hsi_work(std::atomic<bool>& running_flag)
            << " HSIEvent messages and successfully sent " << m_sent_counter.load() << " copies. ";
   ers::info(hsilibs::ProgressUpdate(ERS_HERE, get_name(), oss_summ.str()));
   TLOG_DEBUG(2) << get_name() << ": Exiting do_work() method";
-}
+} // NOLINT
 
 void
 HSIReadout::update_buffer_counts(uint16_t new_count) // NOLINT(build/unsigned)
