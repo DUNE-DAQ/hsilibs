@@ -9,15 +9,15 @@
 
 #include "HSIReadout.hpp"
 
-#include "timing/TimingIssues.hpp"
 #include "timing/HSIDesignInterface.hpp"
+#include "timing/TimingIssues.hpp"
 
 #include "hsilibs/opmon/hsi_readout_info.pb.cc"
 
+#include "confmodel/Connection.hpp"
+#include "confmodel/DaqModule.hpp"
 #include "logging/Logging.hpp" // NOTE: if ISSUES ARE DECLARED BEFORE include logging/Logging.hpp, TLOG_DEBUG<<issue wont work.
 #include "rcif/cmd/Nljs.hpp"
-#include "confmodel/DaqModule.hpp"
-#include "confmodel/Connection.hpp"
 #include <chrono>
 #include <cstdlib>
 #include <memory>
@@ -26,9 +26,18 @@
 #include <vector>
 
 namespace dunedaq {
-  ERS_DECLARE_ISSUE(hsilibs, InvalidHSIEventHeader, " Invalid hsi buffer event header: 0x" << std::hex << header, ((uint32_t)header)) // NOLINT(build/unsigned)
-  ERS_DECLARE_ISSUE(hsilibs, InvalidHSIEventTimestamp, " Invalid hsi buffer event timestamp: 0x" << std::hex << timestamp, ((uint64_t)timestamp)) // NOLINT(build/unsigned)
-  ERS_DECLARE_ISSUE(hsilibs, InvalidNumberReadoutHSIWords, " Invalid number of hsi words readout from buffer: 0x" << std::hex << n_words, ((uint16_t)n_words)) // NOLINT(build/unsigned)
+ERS_DECLARE_ISSUE(hsilibs,
+                  InvalidHSIEventHeader,
+                  " Invalid hsi buffer event header: 0x" << std::hex << header,
+                  ((uint32_t)header)) // NOLINT(build/unsigned)
+ERS_DECLARE_ISSUE(hsilibs,
+                  InvalidHSIEventTimestamp,
+                  " Invalid hsi buffer event timestamp: 0x" << std::hex << timestamp,
+                  ((uint64_t)timestamp)) // NOLINT(build/unsigned)
+ERS_DECLARE_ISSUE(hsilibs,
+                  InvalidNumberReadoutHSIWords,
+                  " Invalid number of hsi words readout from buffer: 0x" << std::hex << n_words,
+                  ((uint16_t)n_words)) // NOLINT(build/unsigned)
 namespace hsilibs {
 
 HSIReadout::HSIReadout(const std::string& name)
@@ -57,7 +66,7 @@ HSIReadout::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
     if (con->get_data_type() == datatype_to_string<HSI_FRAME_STRUCT>()) {
 
       m_raw_hsi_data_sender = get_iom_sender<HSI_FRAME_STRUCT>(con->UID());
-  }
+    }
   }
   m_params = mdal->get_configuration();
 
@@ -73,8 +82,7 @@ HSIReadout::do_configure(const CommandData_t& /*data*/)
 
   configure_uhal(m_params->get_uhal_log_level(), m_params->get_connections_file()); // configure hw ipbus connection
 
-  if (m_params->get_hsi_device_name().empty())
-  {
+  if (m_params->get_hsi_device_name().empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name for HSIReadout should not be empty");
   }
   m_hsi_device_name = m_params->get_hsi_device_name();
@@ -130,49 +138,43 @@ HSIReadout::do_hsi_work(std::atomic<bool>& running_flag)
   m_last_readout_timestamp = 0;
   m_last_sent_timestamp = 0;
 
-  auto hsi_design = dynamic_cast<const timing::HSIDesignInterface*> (&m_hsi_device->getNode(""));
+  auto hsi_design = dynamic_cast<const timing::HSIDesignInterface*>(&m_hsi_device->getNode(""));
   auto hsi_node = hsi_design->get_hsi_node();
   auto ept_node = hsi_design->get_endpoint_node_plain(0);
 
   while (running_flag.load()) {
-        
+
     // endpoint should be ready if already running
     auto hsi_endpoint_ready = ept_node->endpoint_ready();
-    if (!hsi_endpoint_ready)
-    {
+    if (!hsi_endpoint_ready) {
       auto hsi_endpoint_state = ept_node->read_endpoint_state();
       ers::error(timing::EndpointNotReady(ERS_HERE, "HSI", hsi_endpoint_state));
     }
-    
+
     auto hsi_emulation_mode = hsi_node.read_signal_source_mode();
 
     uhal::ValVector<uint32_t> hsi_words;
-    try
-    {
+    try {
       uint16_t n_words_in_buffer; // NOLINT(build/unsigned)
 
       hsi_words = hsi_node.read_data_buffer(n_words_in_buffer, false, true);
       update_buffer_counts(n_words_in_buffer);
       TLOG_DEBUG(5) << get_name() << ": Number of words in HSI buffer: " << n_words_in_buffer;
-    }
-    catch (const uhal::exception::UdpTimeout& excpt)
-    {
+    } catch (const uhal::exception::UdpTimeout& excpt) {
       ers::error(HSIReadoutNetworkIssue(ERS_HERE, excpt));
       std::this_thread::sleep_for(std::chrono::microseconds(m_readout_period));
       continue;
     }
-    
+
     constexpr size_t n_words_per_hsi_buffer_event = timing::HSINode::hsi_buffer_event_words_number;
     // one or more complete events
-    if (hsi_words.size() % n_words_per_hsi_buffer_event == 0 && hsi_words.size() > 0)
-    { 
+    if (hsi_words.size() % n_words_per_hsi_buffer_event == 0 && hsi_words.size() > 0) {
       uint n_hsi_events = hsi_words.size() / n_words_per_hsi_buffer_event;
 
       TLOG_DEBUG(4) << get_name() << ": Have readout " << n_hsi_events << " HSIEvent(s) ";
 
       m_readout_counter.store(m_readout_counter.load() + n_hsi_events);
-      for (uint i = 0; i < n_hsi_events; ++i)
-      {
+      for (uint i = 0; i < n_hsi_events; ++i) {
         std::array<uint32_t, n_words_per_hsi_buffer_event> raw_event;
 
         auto event_start = hsi_words.begin() + (i * n_words_per_hsi_buffer_event);
@@ -193,41 +195,40 @@ HSIReadout::do_hsi_work(std::atomic<bool>& running_flag)
         uint32_t counter = header & 0x0000ffff; // NOLINT(build/unsigned)
 
         if ((header >> 16) != 0xaa00) {
-          ers::error(InvalidHSIEventHeader(ERS_HERE,header));
+          ers::error(InvalidHSIEventHeader(ERS_HERE, header));
           continue;
         }
 
-        if (!ts)
-        {
-          ers::warning(InvalidHSIEventTimestamp(ERS_HERE,ts));
+        if (!ts) {
+          ers::warning(InvalidHSIEventTimestamp(ERS_HERE, ts));
           continue;
         }
 
-        if (counter > 0 && counter % 60000 == 0)
-        {
+        if (counter > 0 && counter % 60000 == 0) {
           TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
         }
 
-        TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts
-                      << ", " << data << ", " << std::bitset<32>(trigger) << ", "
+        TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts << ", "
+                      << data << ", " << std::bitset<32>(trigger) << ", "
                       << "ts: " << ts << "\n";
-                  
-        // In lieu of propper HSI channel to signal mapping, fake signal map when HSI firmware+hardware is in emulation mode.
+
+        // In lieu of propper HSI channel to signal mapping, fake signal map when HSI firmware+hardware is in emulation
+        // mode.
         // TODO DAQ/HSI team 24/03/22 Put in place HSI channel to signal mapping.
 
-        if (hsi_emulation_mode)
-        {
-          TLOG_DEBUG(3) << " HSI hardware is in emulation mode, faking (overwriting) signal map from firmware+hardware to have (only) bit 7 high.";
+        if (hsi_emulation_mode) {
+          TLOG_DEBUG(3) << " HSI hardware is in emulation mode, faking (overwriting) signal map from firmware+hardware "
+                           "to have (only) bit 7 high.";
           trigger = 1UL << 7;
         }
-        
+
         dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter, m_run_number);
-          
+
         m_last_readout_timestamp.store(ts);
 
         send_hsi_event(event);
 
-        // Send raw HSI data to a DLH 
+        // Send raw HSI data to a DLH
         std::array<uint32_t, 7> hsi_struct;
         hsi_struct[0] = (0x1 << 6) | 0x1; // DAQHeader, frame version: 1, det id: 1
         hsi_struct[1] = ts_low;
@@ -237,28 +238,19 @@ HSIReadout::do_hsi_work(std::atomic<bool>& running_flag)
         hsi_struct[5] = trigger;
         hsi_struct[6] = counter;
 
-        TLOG_DEBUG(3) << get_name() << ": Formed HSI_FRAME_STRUCT "
-              << std::hex 
-              << "0x"   << hsi_struct[0]
-              << ", 0x" << hsi_struct[1]
-              << ", 0x" << hsi_struct[2]
-              << ", 0x" << hsi_struct[3]
-              << ", 0x" << hsi_struct[4]
-              << ", 0x" << hsi_struct[5]
-              << ", 0x" << hsi_struct[6]
-              << "\n";
+        TLOG_DEBUG(3) << get_name() << ": Formed HSI_FRAME_STRUCT " << std::hex << "0x" << hsi_struct[0] << ", 0x"
+                      << hsi_struct[1] << ", 0x" << hsi_struct[2] << ", 0x" << hsi_struct[3] << ", 0x" << hsi_struct[4]
+                      << ", 0x" << hsi_struct[5] << ", 0x" << hsi_struct[6] << "\n";
 
         send_raw_hsi_data(hsi_struct, m_raw_hsi_data_sender.get());
       }
     }
     // empty buffer is ok
-    else if (hsi_words.size() == 0)
-    {
+    else if (hsi_words.size() == 0) {
       TLOG_DEBUG(20) << "Empty HSI buffter";
     }
     // anything else is unexpected
-    else
-    {
+    else {
       ers::error(InvalidNumberReadoutHSIWords(ERS_HERE, hsi_words.size()));
     }
     std::this_thread::sleep_for(std::chrono::microseconds(m_readout_period));
@@ -314,7 +306,6 @@ HSIReadout::generate_opmon_data()
   info.set_average_buffer_occupancy(read_average_buffer_counts());
 
   publish(std::move(info));
-
 }
 
 } // namespace hsilibs

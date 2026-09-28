@@ -9,9 +9,9 @@
 
 #include "hsilibs/HSIEventSender.hpp"
 
-#include "timinglibs/TimingHardwareInterface.hpp"
 #include "appmodel/HSIReadout.hpp"
 #include "appmodel/HSIReadoutConf.hpp"
+#include "timinglibs/TimingHardwareInterface.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "dfmessages/HSIEvent.hpp"
@@ -39,7 +39,9 @@ namespace hsilibs {
  * @brief HSIReadout generates fake HSIEvent messages
  * and pushes them to the configured output queue.
  */
-class HSIReadout : public hsilibs::HSIEventSender, dunedaq::timinglibs::TimingHardwareInterface
+class HSIReadout
+  : public hsilibs::HSIEventSender
+  , dunedaq::timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -65,7 +67,7 @@ private:
   void do_scrap(const CommandData_t& data) override;
 
   std::shared_ptr<raw_sender_ct> m_raw_hsi_data_sender;
-  
+
   void do_hsi_work(std::atomic<bool>&);
   dunedaq::utilities::WorkerThread m_thread;
 

@@ -8,14 +8,14 @@
 
 #include "HSIDataHandlerModule.hpp"
 
-#include "hsilibs/Types.hpp"
 #include "HSIFrameProcessor.hpp"
+#include "hsilibs/Types.hpp"
 
-#include "datahandlinglibs/concepts/DataHandlingConcept.hpp"
-#include "datahandlinglibs/models/DataHandlingModel.hpp"
-#include "datahandlinglibs/models/BinarySearchQueueModel.hpp"
-#include "datahandlinglibs/models/DefaultRequestHandlerModel.hpp"
 #include "datahandlinglibs/ReadoutLogging.hpp"
+#include "datahandlinglibs/concepts/DataHandlingConcept.hpp"
+#include "datahandlinglibs/models/BinarySearchQueueModel.hpp"
+#include "datahandlinglibs/models/DataHandlingModel.hpp"
+#include "datahandlinglibs/models/DefaultRequestHandlerModel.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
 #include "logging/Logging.hpp"
@@ -49,24 +49,23 @@ HSIDataHandlerModule::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-  
+
   namespace rol = dunedaq::datahandlinglibs;
 
   m_readout_impl = std::make_unique<rol::DataHandlingModel<
-                    hsilibs::HSI_FRAME_STRUCT,
-                    rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
-                    rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
-                    hsilibs::HSIFrameProcessor>>(m_run_marker);
+    hsilibs::HSI_FRAME_STRUCT,
+    rol::DefaultRequestHandlerModel<hsilibs::HSI_FRAME_STRUCT, rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>>,
+    rol::BinarySearchQueueModel<hsilibs::HSI_FRAME_STRUCT>,
+    hsilibs::HSIFrameProcessor>>(m_run_marker);
   m_readout_impl->init(mcfg->get_dal<appmodel::DataHandlerModule>(get_name()));
-    
-  if (m_readout_impl == nullptr)
-  {
+
+  if (m_readout_impl == nullptr) {
     TLOG() << get_name() << "Initialize HSIDataHandlerModule FAILED! ";
     throw datahandlinglibs::FailedReadoutInitialization(ERS_HERE, get_name(), "OKS Config"); // 4 json ident
   }
 
-  register_node( "data_handler", m_readout_impl);
-  
+  register_node("data_handler", m_readout_impl);
+
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 

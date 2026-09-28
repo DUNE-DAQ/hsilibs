@@ -1,5 +1,5 @@
 /**
- * @file HSIDataHandlerModule.hpp Module implementing 
+ * @file HSIDataHandlerModule.hpp Module implementing
  * DataLinkHandlerConcept for HSI.
  *
  * This is part of the DUNE DAQ , copyright 2020.
@@ -13,11 +13,11 @@
 #include "daqdataformats/Types.hpp"
 #include "datahandlinglibs/concepts/DataHandlingConcept.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
-#include <atomic>
 
 namespace dunedaq {
 namespace hsilibs {
@@ -31,10 +31,11 @@ public:
    */
   explicit HSIDataHandlerModule(const std::string& name);
 
-  HSIDataHandlerModule(const HSIDataHandlerModule&) = delete;            ///< HSIDataHandlerModule is not copy-constructible
-  HSIDataHandlerModule& operator=(const HSIDataHandlerModule&) = delete; ///< HSIDataHandlerModule is not copy-assignable
-  HSIDataHandlerModule(HSIDataHandlerModule&&) = delete;                 ///< HSIDataHandlerModule is not move-constructible
-  HSIDataHandlerModule& operator=(HSIDataHandlerModule&&) = delete;      ///< HSIDataHandlerModule is not move-assignable
+  HSIDataHandlerModule(const HSIDataHandlerModule&) = delete; ///< HSIDataHandlerModule is not copy-constructible
+  HSIDataHandlerModule& operator=(const HSIDataHandlerModule&) =
+    delete;                                                         ///< HSIDataHandlerModule is not copy-assignable
+  HSIDataHandlerModule(HSIDataHandlerModule&&) = delete;            ///< HSIDataHandlerModule is not move-constructible
+  HSIDataHandlerModule& operator=(HSIDataHandlerModule&&) = delete; ///< HSIDataHandlerModule is not move-assignable
 
   void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
 

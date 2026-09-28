@@ -9,10 +9,10 @@
 
 #include "hsilibs/HSIEventSender.hpp"
 
+#include "confmodel/Connection.hpp"
+#include "confmodel/DaqModule.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "confmodel/DaqModule.hpp"
-#include "confmodel/Connection.hpp"
 
 #include <chrono>
 #include <cstdlib>
