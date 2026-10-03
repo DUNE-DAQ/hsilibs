@@ -21,6 +21,7 @@
 
 #include <bitset>
 #include <chrono>
+#include <future>
 #include <memory>
 #include <random>
 #include <string>
@@ -67,6 +68,7 @@ private:
   dunedaq::utilities::WorkerThread m_thread;
 
   std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_timesync_receiver;
+  std::unique_ptr<std::promise<void>> m_start_promise;
 
   // Configuration
   std::atomic<daqdataformats::run_number_t> m_run_number;
@@ -74,7 +76,7 @@ private:
   // Helper class for estimating DAQ time
   std::unique_ptr<utilities::TimestampEstimatorTimeSync> m_timestamp_estimator;
 
-  // Random Generatior
+  // Random Generator
   std::default_random_engine m_random_generator;
   std::uniform_int_distribution<uint32_t> m_uniform_distribution; // NOLINT(build/unsigned)
   std::poisson_distribution<uint64_t> m_poisson_distribution;     // NOLINT(build/unsigned)
